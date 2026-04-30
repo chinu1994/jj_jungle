@@ -1,0 +1,60 @@
+# -*- coding: utf-8 -*-
+# Part of JJ Jungle. See LICENSE file for full copyright and licensing details.
+
+{
+    'name': 'JJ Jungle Social',
+    'category': 'JJ Jungle social',
+    'sequence': 175,
+    'summary': 'Manage your JJ Jungle media social and website visitors',
+    'version': '1.3',
+    'description': """Manage your JJ Jungle social media and website visitors""",
+    'website': 'https://www.jj_junglesocial.com',
+    'depends': ['web', 'mail', 'iap', 'link_tracker'],
+    'data': [
+        'security/social_security.xml',
+        'security/ir.model.access.csv',
+        'data/ir_cron_data.xml',
+        'views/jj_jungle_menu_views.xml',
+        'views/jj_jungle_account_views.xml',
+        'views/jj_jungle_live_post_views.xml',
+        'views/jj_jungle_media_views.xml',
+        'views/jj_jungle_post_template_views.xml',
+        'views/jj_jungle_post_views.xml',
+        'views/jj_jungle_stream_post_views.xml',
+        'views/jj_jungle_stream_views.xml',
+        'views/res_config_settings_views.xml',
+        'views/jj_jungle_utm_campaign_views.xml',
+        'views/jj_jungle_templates.xml'
+    ],
+    'demo': [
+        'data/social_demo.xml'
+    ],
+    'application': True,
+    'installable': True,
+    'assets': {
+        'web.assets_backend': [
+            'social/static/src/js/jj_jungle_add_stream_modal.js',
+            'social/static/src/js/jj_jungle_images_carousel_dialog.js',
+            'social/static/src/js/jj_jungle_post_kanban_compiler.js',
+            'social/static/src/js/jj_jungle_post_kanban_view.js',
+            'social/static/src/js/jj_jungle_social_post_formatter_mixin.js',
+            'social/static/src/js/jj_jungle_social_post_preview_field.js',
+            'social/static/src/js/jj_jungle_stream_post_comment.js',
+            'social/static/src/js/jj_jungle_stream_post_comment_list.js',
+            'social/static/src/js/jj_jungle_stream_post_comments.js',
+            'social/static/src/js/jj_jungle_stream_post_comments_reply.js',
+            'social/static/src/js/jj_jungle_stream_post_kanban_controller.js',
+            'social/static/src/js/jj_jungle_stream_post_kanban_dashboard.js',
+            'social/static/src/js/jj_jungle_stream_post_kanban_model.js',
+            'social/static/src/js/jj_jungle_stream_post_kanban_record.js',
+            'social/static/src/js/jj_jungle_stream_post_kanban_refresh_banner.js',
+            'social/static/src/js/jj_jungle_stream_post_kanban_renderer.js',
+            'social/static/src/js/jj_jungle_stream_post_kanban_view.js',
+            'social/static/src/js/tours/jj_jungle_social.js',
+            'social/static/src/scss/social.scss',
+            'social/static/src/models/**/*',
+            'social/static/src/xml/**/*',
+        ],
+    },
+    'license': 'LGPL-3',
+}

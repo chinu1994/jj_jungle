@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_simple_jungle_user,simple.jungle.user,model_simple_jungle,base.group_user,1,1,1,1
+access_res_company_user,res.company.user,base.model_res_company,base.group_user,1,1,1,1
+access_res_users_user,res.users.user,base.model_res_users,base.group_user,1,1,1,1

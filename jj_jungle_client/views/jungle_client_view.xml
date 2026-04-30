@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="view_simple_jungle_tree" model="ir.ui.view">
+        <field name="name">simple.jungle.tree</field>
+        <field name="model">simple.jungle</field>
+        <field name="arch" type="xml">
+            <tree string="JJ Jungle Records">
+                <field name="name"/>
+                <field name="email"/>
+                <field name="company_id"/>
+                <field name="user_id"/>
+                <field name="state" widget="badge"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_simple_jungle_form" model="ir.ui.view">
+        <field name="name">simple.jungle.form</field>
+        <field name="model">simple.jungle</field>
+        <field name="arch" type="xml">
+            <form string="JJ Jungle">
+                <header>
+                    <button name="action_confirm" type="object" string="Confirm" class="btn-primary" states="draft"/>
+                    <button name="action_draft" type="object" string="Reset to Draft" states="confirm"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirm"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Name"/>
+                        <h1>
+                            <field name="name" placeholder="jj_jungle_name" required="1"
+                                   attrs="{'readonly': [('state', '=', 'confirm')]}"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="email" required="1" placeholder="example@email.com"
+                                   attrs="{'readonly': [('state', '=', 'confirm')]}"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="company_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="user_id" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_simple_jungle_search" model="ir.ui.view">
+        <field name="name">simple.jungle.search</field>
+        <field name="model">simple.jungle</field>
+        <field name="arch" type="xml">
+            <search string="Search JJ Jungle">
+                <field name="name"/>
+                <field name="email"/>
+                <field name="company_id"/>
+                <field name="user_id"/>
+                <filter string="Active" name="active" domain="[('active','=',True)]"/>
+                <filter string="Confirmed" name="confirm" domain="[('state','=','confirm')]"/>
+                <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_state" context="{'group_by':'state'}"/>
+                    <filter string="Company" name="group_company" context="{'group_by':'company_id'}"/>
+                    <filter string="Responsible" name="group_user" context="{'group_by':'user_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_simple_jungle" model="ir.actions.act_window">
+        <field name="name">JJ Jungle</field>
+        <field name="res_model">simple.jungle</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_simple_jungle_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first jungle record!
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu -->
+    <menuitem id="menu_simple_jungle"
+              name="JJ Jungle"
+              action="action_simple_jungle"
+              sequence="10"/>
+</odoo>
