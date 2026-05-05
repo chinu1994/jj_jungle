@@ -25,10 +25,10 @@ class JJSocialMedia(models.Model):
     image = fields.Binary('Image', readonly=True)
     media_type = fields.Selection([], readonly=True,
         help="Used to make comparisons when we need to restrict some features to a specific media ('facebook', 'twitter', ...).")
-    csrf_token = fields.Char('CSRF Token', compute='_compute_csrf_token',
+    csrf_token = fields.Char('CSRF Token', compute='_jj_compute_csrf_token',
         help="This token can be used to verify that an incoming request from a social provider has not been forged.")
     account_ids = fields.One2many('jj.social.account', 'media_id', string="Social Accounts")
-    accounts_count = fields.Integer('# Accounts', compute='_compute_accounts_count')
+    accounts_count = fields.Integer('# Accounts', compute='_jj_compute_accounts_count')
     has_streams = fields.Boolean('Streams Enabled', default=True, readonly=True, required=True,
         help="Controls if social streams are handled on this social media.")
     can_link_accounts = fields.Boolean('Can link accounts ?', default=True, readonly=True, required=True,
@@ -37,22 +37,22 @@ class JJSocialMedia(models.Model):
     max_post_length = fields.Integer('Max Post Length',
         help="Set a maximum number of characters can be posted in post. 0 for no limit.")
 
-    def _compute_accounts_count(self):
+    def _jj_compute_accounts_count(self):
         for media in self:
             media.accounts_count = len(media.account_ids)
 
-    def _compute_csrf_token(self):
+    def _jj_compute_csrf_token(self):
         for media in self:
             media.csrf_token = hmac(self.env(su=True), 'social_social-account-csrf-token', media.id)
 
-    def action_add_account(self, company_id=None):
+    def jj_action_add_account(self, company_id=None):
         # Set the company of the futures new accounts (see <jj.social.account>::_get_default_company)
         if company_id is None:
             company_id = self.env.company.id
         request.session['social_company_id'] = company_id
-        return self._action_add_account()
+        return self._jj_action_add_account()
 
-    def _action_add_account(self):
+    def _jj_action_add_account(self):
         """ Every social module should override this method.
         Usually redirects to the social media links that allows accounts to be read by our app. """
         pass

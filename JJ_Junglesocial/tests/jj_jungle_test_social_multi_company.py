@@ -177,10 +177,10 @@ class TestSocialMultiCompany(common.SocialCase):
         self.assertEqual(len(live_post_1), 1)
         self.assertEqual(len(live_post_2), 1)
 
-        self.env['mail.render.mixin'].sudo()._shorten_links_text(post.message, live_post_1._get_utm_values())
+        self.env['mail.render.mixin'].sudo()._shorten_links_text(post.message, live_post_1._jj_get_utm_values())
         link_tracker_1 = self.env['link.tracker'].search([('url', '=', url), ('medium_id', '=', self.account_1.utm_medium_id.id)])
 
-        self.env['mail.render.mixin'].sudo()._shorten_links_text(post.message, live_post_2._get_utm_values())
+        self.env['mail.render.mixin'].sudo()._shorten_links_text(post.message, live_post_2._jj_get_utm_values())
         link_tracker_2 = self.env['link.tracker'].search([('url', '=', url), ('medium_id', '=', self.account_2.utm_medium_id.id)])
 
         self.assertEqual(len(link_tracker_1), 1)

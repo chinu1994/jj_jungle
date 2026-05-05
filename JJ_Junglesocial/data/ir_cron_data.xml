@@ -5,7 +5,7 @@
         <field name="model_id" ref="model_jj_social_post"/>
         <field name="state">code</field>
         <field name="numbercall">-1</field>
-        <field name="code">model._cron_publish_scheduled()</field>
+        <field name="code">model._jj_cron_publish_scheduled()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">hours</field>
         <field name="user_id" ref="base.user_root"/>

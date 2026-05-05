@@ -62,7 +62,7 @@ def mock_void_external_calls_facebook():
         with patch.object(JJSocialAccountFacebook, '_compute_statistics', lambda x: None), \
              patch.object(JJSocialAccountFacebook, '_create_default_stream_facebook', lambda *args, **kwargs: None), \
              patch.object(JJSocialLivePostFacebook, '_post_facebook', lambda x: None), \
-             patch.object(JJSocialStreamFacebook, '_fetch_stream_data', lambda x: None):
+             patch.object(JJSocialStreamFacebook, '_jj_fetch_stream_data', lambda x: None):
             yield
     else:
         yield
@@ -73,8 +73,8 @@ def mock_void_external_calls_instagram():
         with patch.object(JJSocialAccountInstagram, '_compute_statistics', lambda x: None), \
              patch.object(JJSocialAccountInstagram, '_create_default_stream_instagram', lambda *args, **kwargs: None), \
              patch.object(JJSocialLivePostInstagram, '_post_instagram', lambda x: None), \
-             patch.object(JJSocialPostInstagram, '_check_post_access', lambda x: False), \
-             patch.object(JJSocialStreamInstagram, '_fetch_stream_data', lambda x: None):
+             patch.object(JJSocialPostInstagram, '_jj_check_post_access', lambda x: False), \
+             patch.object(JJSocialStreamInstagram, '_jj_fetch_stream_data', lambda x: None):
             yield
     else:
         yield
@@ -85,7 +85,7 @@ def mock_void_external_calls_linkedin():
         with patch.object(JJSocialAccountLinkedin, '_compute_statistics', lambda x: None), \
              patch.object(JJSocialAccountLinkedin, '_create_default_stream_linkedin', lambda *args, **kwargs: None), \
              patch.object(JJSocialLivePostLinkedin, '_post_linkedin', lambda x: None), \
-             patch.object(JJSocialStreamLinkedIn, '_fetch_stream_data', lambda x: None):
+             patch.object(JJSocialStreamLinkedIn, '_jj_fetch_stream_data', lambda x: None):
             yield
     else:
         yield
@@ -96,7 +96,7 @@ def mock_void_external_calls_twitter():
         with patch.object(JJSocialAccountTwitter, '_compute_statistics', lambda x: None), \
              patch.object(JJSocialAccountTwitter, '_create_default_stream_twitter', lambda *args, **kwargs: None), \
              patch.object(JJSocialLivePostTwitter, '_post_twitter', lambda x: None), \
-             patch.object(JJSocialStreamTwitter, '_fetch_stream_data', lambda x: None):
+             patch.object(JJSocialStreamTwitter, '_jj_fetch_stream_data', lambda x: None):
             yield
     else:
         yield
@@ -106,7 +106,7 @@ def mock_void_external_calls_youtube():
     if is_youtube_module_installed:
         with patch.object(JJSocialAccountYoutube, '_create_default_stream_youtube', lambda *args, **kwargs: None), \
              patch.object(JJSocialLivePostYoutube, '_post_youtube', lambda x: None), \
-             patch.object(JJSocialStreamYoutube, '_fetch_stream_data', lambda x: None):
+             patch.object(JJSocialStreamYoutube, '_jj_fetch_stream_data', lambda x: None):
             yield
     else:
         yield

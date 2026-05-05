@@ -46,9 +46,9 @@ class JjSocialLivePost(models.Model):
         for live_post in self:
             message = self.env['mail.render.mixin'].sudo()._shorten_links_text(
                 live_post.post_id.message,
-                live_post._get_utm_values())
+                live_post._jj_get_utm_values())
 
-            live_post.message = self.env['jj.social.post']._prepare_post_content(
+            live_post.message = self.env['jj.social.post']._jj_prepare_post_content(
                 message,
                 live_post.account_id.media_type,
                 **{field: live_post.post_id[field] for field in self.env['jj.social.post']._get_post_message_modifying_fields()})
@@ -66,29 +66,29 @@ class JjSocialLivePost(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         res = super(JjSocialLivePost, self).create(vals_list)
-        res.mapped('post_id')._check_post_completion()
+        res.mapped('post_id')._jj_check_post_completion()
         return res
 
     def write(self, vals):
         res = super(JjSocialLivePost, self).write(vals)
         if vals.get('state'):
-            self.mapped('post_id')._check_post_completion()
+            self.mapped('post_id')._jj_check_post_completion()
         return res
 
     def action_retry_post(self):
         self._post()
 
     @api.model
-    def refresh_statistics(self):
+    def jj_refresh_statistics(self):
         # as refreshing the statistics is a recurring task, we ignore occasional "read timeouts"
         # from the third party services, as it would most likely mean a temporary slow connection
         # and/or a slow response from their side
         try:
-            self.env['jj.social.live.post']._refresh_statistics()
+            self.env['jj.social.live.post']._jj_refresh_statistics()
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
             _logger.warning("Failed to refresh the live post statistics.", exc_info=True)
 
-    def _refresh_statistics(self):
+    def _jj_refresh_statistics(self):
         """ Every social module should override this method.
 
         This is the method responsible for fetching the post data per social media.
@@ -106,7 +106,7 @@ class JjSocialLivePost(models.Model):
         This will make the actual post on the related jj.social.account through the third party API """
         pass
 
-    def _get_utm_values(self):
+    def _jj_get_utm_values(self):
         self.ensure_one()
 
         post_id = self.post_id
@@ -116,5 +116,5 @@ class JjSocialLivePost(models.Model):
             'source_id': post_id.source_id.id,
         }
 
-    def _filter_by_media_types(self, media_types):
+    def _jj_filter_by_media_types(self, media_types):
         return self.filtered(lambda post: post.account_id.media_id.media_type in media_types)

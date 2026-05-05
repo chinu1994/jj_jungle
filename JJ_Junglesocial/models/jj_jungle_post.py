@@ -17,7 +17,7 @@ class JJSocialPost(models.Model):
     This model inherits from `jj.social.post.template` which contains the common part of both
     (all fields related to the post content like the message, the images...). So we do not
     duplicate the code by inheriting from it. We can generate a `jj.social.post` from a
-    `jj.social.post.template` with `action_generate_post`.
+    `jj.social.post.template` with `jj_action_generate_post`.
 
     When posted, it actually creates several instances of  jj.social.live.posts (one per jj.social.account)
     that will publish their content through the third party API of the jj.social.account. """
@@ -34,18 +34,18 @@ class JJSocialPost(models.Model):
         ('posted', 'Posted')],
         string='Status', default='draft', readonly=True, required=True,
         help="The post is considered as 'Posted' when all its sub-posts (one per social account) are either 'Failed' or 'Posted'")
-    has_post_errors = fields.Boolean("There are post errors on sub-posts", compute='_compute_has_post_errors')
+    has_post_errors = fields.Boolean("There are post errors on sub-posts", compute='_jj_compute_has_post_errors')
     account_ids = fields.Many2many(domain="[('id', 'in', account_allowed_ids)]")
-    account_allowed_ids = fields.Many2many('jj.social.account', string='Allowed Accounts', compute='_compute_account_allowed_ids',
+    account_allowed_ids = fields.Many2many('jj.social.account', string='Allowed Accounts', compute='_jj_compute_account_allowed_ids',
                                            help='List of the accounts which can be selected for this post.')
     company_id = fields.Many2one('res.company', string='Company',
                                  default=lambda self: self.env.company,
                                  domain=lambda self: [('id', 'in', self.env.companies.ids)])
-    media_ids = fields.Many2many('jj.social.media', compute='_compute_media_ids', store=True,
+    media_ids = fields.Many2many('jj.social.media', compute='_jj_compute_media_ids', store=True,
         help="The social medias linked to the selected social accounts.")
     live_post_ids = fields.One2many('jj.social.live.post', 'post_id', string="Posts By Account", readonly=True,
         help="Sub-posts that will be published on each selected social accounts.")
-    live_posts_by_media = fields.Char('Live Posts by Social Media', compute='_compute_live_posts_by_media', readonly=True,
+    live_posts_by_media = fields.Char('Live Posts by Social Media', compute='_jj_compute_live_posts_by_media', readonly=True,
         help="Special technical field that holds a dict containing the live posts names by media ids (used for kanban view).")
     post_method = fields.Selection([
         ('now', 'Send now'),
@@ -61,14 +61,14 @@ class JJSocialPost(models.Model):
         string="UTM Campaign", ondelete="set null")
     source_id = fields.Many2one(readonly=True)
     # Statistics
-    stream_posts_count = fields.Integer("Feed Posts Count", compute='_compute_stream_posts_count')
-    engagement = fields.Integer("Engagement", compute='_compute_post_engagement',
+    stream_posts_count = fields.Integer("Feed Posts Count", compute='_jj_compute_stream_posts_count')
+    engagement = fields.Integer("Engagement", compute='_jj_compute_post_engagement',
         help="Number of people engagements with the post (Likes, comments...)")
-    click_count = fields.Integer('Number of clicks', compute="_compute_click_count")
+    click_count = fields.Integer('Number of clicks', compute="_jj_compute_click_count")
 
 
     @api.constrains('account_ids')
-    def _check_account_ids(self):
+    def _jj_check_account_ids(self):
         """All social accounts must be in the same company."""
         for post in self.sudo():  # SUDO to bypass multi-company ACLs
             if not (post.account_ids <= post.account_allowed_ids):
@@ -79,7 +79,7 @@ class JJSocialPost(models.Model):
                 ))
 
     @api.depends('live_post_ids.engagement')
-    def _compute_post_engagement(self):
+    def _jj_compute_post_engagement(self):
         results = self.env['jj.social.live.post']._read_group(
             [('post_id', 'in', self.ids)],
             ['post_id', 'engagement_total:sum(engagement)'],
@@ -94,14 +94,14 @@ class JJSocialPost(models.Model):
             post.engagement = engagement_per_post.get(post.id, 0)
 
     @api.depends('account_allowed_ids')
-    def _compute_has_active_accounts(self):
+    def _jj_compute_has_active_accounts(self):
         for post in self:
             post.has_active_accounts = bool(post.account_allowed_ids)
 
     @api.depends('live_post_ids')
-    def _compute_stream_posts_count(self):
+    def _jj_compute_stream_posts_count(self):
         for post in self:
-            stream_post_domain = post._get_stream_post_domain()
+            stream_post_domain = post._jj_get_stream_post_domain()
             if stream_post_domain:
                 post.stream_posts_count = self.env['jj.social.stream.post'].search_count(
                     stream_post_domain)
@@ -109,11 +109,11 @@ class JJSocialPost(models.Model):
                 post.stream_posts_count = 0
 
     @api.depends('company_id')
-    def _compute_account_ids(self):
-        super(JJSocialPost, self)._compute_account_ids()
+    def _jj_compute_account_ids(self):
+        super(JJSocialPost, self)._jj_compute_account_ids()
 
     @api.depends('company_id')
-    def _compute_account_allowed_ids(self):
+    def _jj_compute_account_allowed_ids(self):
         """Compute the allowed social accounts for this social post.
 
         If the company is set on the post, we can attach to it account in the same company
@@ -126,12 +126,12 @@ class JJSocialPost(models.Model):
             post.account_allowed_ids = all_account_allowed_ids.filtered_domain(post._get_company_domain())
 
     @api.depends('live_post_ids.state')
-    def _compute_has_post_errors(self):
+    def _jj_compute_has_post_errors(self):
         for post in self:
             post.has_post_errors = any(live_post.state == 'failed' for live_post in post.live_post_ids)
 
     @api.depends('account_ids.media_id')
-    def _compute_media_ids(self):
+    def _jj_compute_media_ids(self):
         for post in self:
             post.media_ids = post.with_context(active_test=False).account_ids.mapped('media_id')
 
@@ -141,7 +141,7 @@ class JJSocialPost(models.Model):
             post.calendar_date = post.published_date if post.state == 'posted' else post.scheduled_date
 
     @api.depends('live_post_ids.account_id', 'live_post_ids.display_name')
-    def _compute_live_posts_by_media(self):
+    def _jj_compute_live_posts_by_media(self):
         """ See field 'help' for more information. """
         for post in self:
             accounts_by_media = {media_id: [] for media_id in post.media_ids.ids}
@@ -149,7 +149,7 @@ class JJSocialPost(models.Model):
                 accounts_by_media[live_post.account_id.media_id.id].append(live_post.display_name)
             post.live_posts_by_media = json.dumps(accounts_by_media)
 
-    def _compute_click_count(self):
+    def _jj_compute_click_count(self):
         # Filter by `medium_id` so we can compute the click count based
         # on the current companies (1 account == 1 medium)
         medium_ids = self.account_ids.mapped('utm_medium_id')
@@ -173,10 +173,10 @@ class JJSocialPost(models.Model):
             for post in self:
                 post.click_count = mapped_data.get(post.source_id.id, 0)
 
-    def _prepare_preview_values(self, media):
-        values = super(JJSocialPost, self)._prepare_preview_values(media)
+    def _jj_prepare_preview_values(self, media):
+        values = super(JJSocialPost, self)._jj_prepare_preview_values(media)
         if self._name == 'jj.social.post':
-            live_posts = self.live_post_ids._filter_by_media_types([media])
+            live_posts = self.live_post_ids._jj_filter_by_media_types([media])
             # Take first live post for preview. Should always have at least one.
             values['live_post_link'] = live_posts[0].live_post_link if len(live_posts) >= 1 else False
         return values
@@ -188,7 +188,7 @@ class JJSocialPost(models.Model):
         for post in self:
             result.append((
                 post.id,
-                self._prepare_post_name(
+                self._jj_prepare_post_name(
                     post.message,
                     state=post.state if post.state == 'draft' else False
                 )
@@ -249,17 +249,17 @@ class JJSocialPost(models.Model):
 
         return super(JJSocialPost, self).write(vals)
 
-    def social_stream_post_action_my(self):
+    def jj_social_stream_post_action_my(self):
         action = self.env["ir.actions.actions"]._for_xml_id("social.action_social_stream_post")
         action['name'] = _('Feed Posts')
-        action['domain'] = self._get_stream_post_domain()
+        action['domain'] = self._jj_get_stream_post_domain()
         action['context'] = {
             'search_default_search_my_streams': True,
             'search_default_group_by_stream': True
         }
         return action
 
-    def _check_post_access(self):
+    def _jj_check_post_access(self):
         """
         Raise an error if the user cannot post on a social media
         """
@@ -279,15 +279,15 @@ class JJSocialPost(models.Model):
             ))
 
     def action_schedule(self):
-        self._check_post_access()
+        self._jj_check_post_access()
         self.write({'state': 'scheduled'})
 
     def action_set_draft(self):
-        self._check_post_access()
+        self._jj_check_post_access()
         self.write({'state': 'draft'})
 
     def action_post(self):
-        self._check_post_access()
+        self._jj_check_post_access()
 
         self.write({
             'post_method': 'now',
@@ -296,7 +296,7 @@ class JJSocialPost(models.Model):
 
         self._action_post()
 
-    def action_redirect_to_clicks(self):
+    def jj_action_redirect_to_clicks(self):
         action = self.env["ir.actions.actions"]._for_xml_id("link_tracker.link_tracker_action")
         action['domain'] = [
             ('source_id', '=', self.source_id.id),
@@ -314,7 +314,7 @@ class JJSocialPost(models.Model):
                 'published_date': fields.Datetime.now(),
                 'live_post_ids': [
                     (0, 0, live_post)
-                    for live_post in post._prepare_live_post_values()]
+                    for live_post in post._jj_prepare_live_post_values()]
             })
 
         if not getattr(threading.current_thread(), 'testing', False):
@@ -340,7 +340,7 @@ class JJSocialPost(models.Model):
                 'failure_reason': _('Unknown error')
             })
 
-    def _prepare_live_post_values(self):
+    def _jj_prepare_live_post_values(self):
         self.ensure_one()
 
         return [{
@@ -349,7 +349,7 @@ class JJSocialPost(models.Model):
         } for account in self.account_ids]
 
     @api.model
-    def _prepare_post_name(self, message, state=False):
+    def _jj_prepare_post_name(self, message, state=False):
         name = _('Post')
         if message:
             message = message.replace('\n', ' ')  # replace carriage returns as needed name is usually a Char
@@ -371,14 +371,14 @@ class JJSocialPost(models.Model):
             return ['|', ('company_id', '=', False), ('company_id', '=', self.company_id.id)]
         return ['|', ('company_id', '=', False), ('company_id', 'in', self.env.companies.ids)]
 
-    def _get_default_accounts_domain(self):
+    def _jj_get_default_accounts_domain(self):
         return self._get_company_domain()
 
 
-    def _get_stream_post_domain(self):
+    def _jj_get_stream_post_domain(self):
         return []
 
-    def _check_post_completion(self):
+    def _jj_check_post_completion(self):
         """ This method will check if all live.posts related to the post are completed ('posted' / 'failed').
         If it's the case, we can mark the post itself as 'posted'. """
 
@@ -405,7 +405,7 @@ class JJSocialPost(models.Model):
             posts_to_complete.sudo().write({'state': 'posted'})
 
     @api.model
-    def _cron_publish_scheduled(self):
+    def _jj_cron_publish_scheduled(self):
         """ Method called by the cron job that searches for jj.social.posts that were scheduled and need
         to be published and calls _action_post() on them."""
 

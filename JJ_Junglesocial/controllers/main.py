@@ -11,7 +11,7 @@ class SocialValidationException(Exception):
 
 class SocialController(http.Controller):
 
-    def _get_social_stream_post(self, stream_post_id, media_type):
+    def _jj_get_social_stream_post(self, stream_post_id, media_type):
         """ Small utility method that fetches the post and checks it belongs
         to the correct media_type """
         stream_post = request.env['jj.social.stream.post'].search([

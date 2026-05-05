@@ -21,7 +21,7 @@ class JJSocialAccount(models.Model):
         necessarily the selected company.
 
         So, before the authentication process, we store the selected company in the
-        user session (see <jj.social.media>::action_add_account) to be able to retrieve it
+        user session (see <jj.social.media>::jj_action_add_account) to be able to retrieve it
         here.
         """
         if request and 'social_company_id' in request.session:
@@ -39,7 +39,7 @@ class JJSocialAccount(models.Model):
     media_id = fields.Many2one('jj.social.media', string="Social Media", required=True, readonly=True,
         help="Related Social Media (Facebook, Twitter, ...).", ondelete='cascade')
     media_type = fields.Selection(related='media_id.media_type')
-    stats_link = fields.Char("Stats Link", compute='_compute_stats_link',
+    stats_link = fields.Char("Stats Link", compute='_jj_compute_stats_link',
         help="Link to the external Social Account statistics")
     image = fields.Image("Image", max_width=128, max_height=128, readonly=True)
     is_media_disconnected = fields.Boolean('Link with external Social Media is broken')
@@ -73,7 +73,7 @@ class JJSocialAccount(models.Model):
         various stats fields (audience, engagement, stories) as well as related trends fields (if 'has_trends'). """
         pass
 
-    def _compute_stats_link(self):
+    def _jj_compute_stats_link(self):
         """ Every social module should override this method.
         The 'stats_link' is an external link to the actual jj.social.media statistics for this account.
         Ex: https://www.facebook.com/jj_jungle-Social-557894618055440/insights """
@@ -127,7 +127,7 @@ class JJSocialAccount(models.Model):
         return super(JJSocialAccount, self).write(vals)
 
     @api.model
-    def refresh_statistics(self):
+    def jj_refresh_statistics(self):
         """ Will re-compute the statistics of all active accounts. """
         all_accounts = self.env['jj.social.account'].search([('has_account_stats', '=', True)]).sudo()
         # As computing the statistics is a recurring task, we ignore occasional "read timeouts"
@@ -153,13 +153,13 @@ class JJSocialAccount(models.Model):
             'stats_link': account.stats_link
         } for account in all_accounts]
 
-    def _compute_trend(self, value, delta_30d):
+    def _jj_compute_trend(self, value, delta_30d):
         return 0.0 if value - delta_30d <= 0 else (delta_30d / (value - delta_30d)) * 100
 
-    def _filter_by_media_types(self, media_types):
+    def _jj_filter_by_media_types(self, media_types):
         return self.filtered(lambda account: account.media_type in media_types)
 
-    def _get_multi_company_error_message(self):
+    def _jj_get_multi_company_error_message(self):
         """Return an error message if the social accounts information can not be updated by the current user."""
         if not self.env.user.has_group('base.group_multi_company'):
             return
@@ -180,7 +180,7 @@ class JJSocialAccount(models.Model):
                 company_names=', '.join(accounts_other_companies.mapped('company_id.name')),
             )
 
-    def _action_disconnect_accounts(self, disconnection_info=None):
+    def _jj_action_disconnect_accounts(self, disconnection_info=None):
         _logger.warning("Social account disconnected: %s. Reason: %s",
                         ", ".join(self.mapped("display_name")),
                         disconnection_info or "Not provided",

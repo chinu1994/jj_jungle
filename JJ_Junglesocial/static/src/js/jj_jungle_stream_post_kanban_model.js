@@ -11,7 +11,7 @@ export class StreamPostKanbanModel extends KanbanModel {
      * @private
      */
     _refreshStreams() {
-        return this.orm.silent.call('jj.social.stream', 'refresh_all', []);
+        return this.orm.silent.call('jj.social.stream', 'jj_refresh_all', []);
     }
 
     /**
@@ -23,8 +23,8 @@ export class StreamPostKanbanModel extends KanbanModel {
      * @private
      */
     _refreshAccountsStats() {
-        this.orm.silent.call('jj.social.live.post', 'refresh_statistics', []);
-        return this.orm.silent.call('jj.social.account', 'refresh_statistics', []);
+        this.orm.silent.call('jj.social.live.post', 'jj_refresh_statistics', []);
+        return this.orm.silent.call('jj.social.account', 'jj_refresh_statistics', []);
     }
 
     /**

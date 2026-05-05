@@ -31,7 +31,7 @@ class JJSocialStream(models.Model):
     company_id = fields.Many2one('res.company', 'Company', related='account_id.company_id', store=True)
 
     @api.onchange('media_id', 'account_id')
-    def _onchange_media_id(self):
+    def _jj_onchange_media_id(self):
         for stream in self:
             if stream.account_id and stream.account_id.media_id != stream.media_id:
                 stream.account_id = False
@@ -42,13 +42,13 @@ class JJSocialStream(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         res = super(JJSocialStream, self).create(vals_list)
-        res._apply_default_name()
+        res._jj_apply_default_name()
         for stream in res:
-            stream._fetch_stream_data()
+            stream._jj_fetch_stream_data()
         return res
 
     @api.model
-    def refresh_all(self):
+    def jj_refresh_all(self):
         """ Fetches the stream.post based on third party API endpoints (Facebook/Twitter/...) and inserts new stream.posts into database.
         If any post is inserted into a stream created by the current user, the method returns 'True' to indicate caller that
         changes were made and a refresh is required.
@@ -62,13 +62,13 @@ class JJSocialStream(models.Model):
             # from the third party services, as it would most likely mean a temporary slow connection
             # and/or a slow response from their side
             try:
-                new_content |= stream._fetch_stream_data()
+                new_content |= stream._jj_fetch_stream_data()
             except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
                 _logger.warning("Failed to fetch %s data.", stream.name, exc_info=True)
 
         return new_content
 
-    def _fetch_stream_data(self):
+    def _jj_fetch_stream_data(self):
         """ Every social module should override this method.
 
         This is the method responsible for creating the jj.social.stream.posts using the jj.social.media
@@ -80,11 +80,11 @@ class JJSocialStream(models.Model):
             - 'Refresh' button on 'Feed' kanban
             - ...
 
-        This method should return 'True' if new jj.social.posts are inserted,  please check the 'refresh_all' method for
+        This method should return 'True' if new jj.social.posts are inserted,  please check the 'jj_refresh_all' method for
         further implementation instructions. """
 
         self.ensure_one()
 
-    def _apply_default_name(self):
+    def _jj_apply_default_name(self):
         for stream in self:
             stream.write({'name': stream.stream_type_id.name})

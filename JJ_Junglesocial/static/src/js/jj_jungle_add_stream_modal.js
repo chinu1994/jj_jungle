@@ -35,7 +35,7 @@ export class AddSocialStreamDialog extends Component {
         const selectCompany = this.modalRef.el.querySelector('select[name="company_id"]');
         const companyId = selectCompany ? parseInt(selectCompany.value) || 0 : undefined;
 
-        this.orm.call('jj.social.media', 'action_add_account', [mediaId], {
+        this.orm.call('jj.social.media', 'jj_action_add_account', [mediaId], {
             company_id: companyId
         }).then((action) => {
             document.location = action.url;
