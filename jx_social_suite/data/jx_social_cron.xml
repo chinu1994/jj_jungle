@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ==================== Groups ==================== -->
+    <record id="group_jx_social_manager" model="res.groups">
+        <field name="name">JX Social Suite / Manager</field>
+        <field name="category_id" ref="base.module_category_marketing"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_jx_social_user" model="res.groups">
+        <field name="name">JX Social Suite / User</field>
+        <field name="category_id" ref="base.module_category_marketing"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- ==================== Record Rules (ir.rule) ==================== -->
+
+    <!-- jx.social.account - Agency Level Scoping -->
+    <record id="jx_social_account_agency_rule" model="ir.rule">
+        <field name="name">JX Social Account: Agency Access</field>
+        <field name="model_id" ref="model_jx_social_account"/>
+        <field name="groups" eval="[(4, ref('jx_social_suite.group_jx_social_manager')), (4, ref('jx_social_suite.group_jx_social_user'))]"/>
+        <field name="domain_force">[('partner_id.commercial_partner_id', 'in', user.commercial_partner_id.child_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- jx.social.post - Agency Level Scoping -->
+    <record id="jx_social_post_agency_rule" model="ir.rule">
+        <field name="name">JX Social Post: Agency Access</field>
+        <field name="model_id" ref="model_jx_social_post"/>
+        <field name="groups" eval="[(4, ref('jx_social_suite.group_jx_social_manager')), (4, ref('jx_social_suite.group_jx_social_user'))]"/>
+        <field name="domain_force">[('partner_id.commercial_partner_id', 'in', user.commercial_partner_id.child_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- jx.social.token - Strict No Direct Access -->
+    <record id="jx_social_token_no_direct_access" model="ir.rule">
+        <field name="name">JX Social Token: No Direct Access</field>
+        <field name="model_id" ref="model_jx_social_token"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[(0,'=',1)]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- jx.social.audit - Read Only + Agency Scope -->
+    <record id="jx_social_audit_readonly_rule" model="ir.rule">
+        <field name="name">JX Social Audit: Read Only + Agency Scope</field>
+        <field name="model_id" ref="model_jx_social_audit"/>
+        <field name="groups" eval="[(4, ref('jx_social_suite.group_jx_social_manager')), (4, ref('jx_social_suite.group_jx_social_user'))]"/>
+        <field name="domain_force">[('partner_id.commercial_partner_id', 'in', user.commercial_partner_id.child_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+</odoo>
