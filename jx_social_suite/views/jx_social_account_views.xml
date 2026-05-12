@@ -1,0 +1,88 @@
+<odoo>
+
+    <record id="view_jx_social_account_tree" model="ir.ui.view">
+        <field name="name">jx.social.account.tree</field>
+        <field name="model">jx.social.account</field>
+        <field name="arch" type="xml">
+            <tree string="Social Accounts">
+                <field name="account_name"/>
+                <field name="partner_id"/>
+                <field name="provider"/>
+                <field name="account_type"/>
+                <field name="status"/>
+                <field name="last_synced"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_jx_social_account_form" model="ir.ui.view">
+        <field name="name">jx.social.account.form</field>
+        <field name="model">jx.social.account</field>
+        <field name="arch" type="xml">
+            <form string="Social Account">
+                <sheet>
+
+                    <!-- Header -->
+                    <group>
+                        <group>
+                            <field name="account_name"/>
+                            <field name="partner_id"/>
+                            <field name="provider"/>
+                            <field name="account_type"/>
+                        </group>
+
+                        <group>
+                            <field name="status" readonly="1"/>
+                            <field name="last_synced"/>
+                            <field name="agency_user_id"/>
+                        </group>
+                    </group>
+
+                    <!-- Notebook Tabs -->
+                    <notebook>
+
+                        <!-- General Info -->
+                        <page string="General">
+                            <group>
+                                <field name="account_external_id"/>
+                                <field name="scopes"/>
+                                <field name="token_id"/>
+                            </group>
+                        </page>
+
+                        <!-- Scheduled Posts -->
+<!--                        <page string="Schedules">-->
+<!--                            <field name="schedule_ids">-->
+<!--                                <tree>-->
+<!--                                    <field name="name"/>-->
+<!--                                </tree>-->
+<!--                            </field>-->
+<!--                        </page>-->
+
+<!--                        &lt;!&ndash; Analytics &ndash;&gt;-->
+<!--                        <page string="Analytics">-->
+<!--                            <field name="analytics_ids">-->
+<!--                                <tree>-->
+<!--                                    <field name="date"/>-->
+<!--                                    <field name="impressions"/>-->
+<!--                                    <field name="clicks"/>-->
+<!--                                    <field name="likes"/>-->
+<!--                                </tree>-->
+<!--                            </field>-->
+<!--                        </page>-->
+
+                    </notebook>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="jx_social_account_action" model="ir.actions.act_window">
+    <field name="name">Social Accounts</field>
+    <field name="res_model">jx.social.account</field>
+    <field name="view_mode">tree,form</field>
+</record>
+
+</odoo>
+

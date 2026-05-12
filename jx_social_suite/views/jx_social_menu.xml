@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ==================== JX Social Suite Main Menu ==================== -->
+
+        <!-- Root Menu -->
+        <menuitem
+            id="jx_social_menu_root"
+            name="Social Suite"
+            sequence="10"
+            web_icon="jx_social_suite,static/description/icon.png"
+         groups="base.group_user"/>
+
+        <!-- Dashboard -->
+<!--        <menuitem-->
+<!--            id="jx_social_menu_dashboard"-->
+<!--            name="Dashboard"-->
+<!--            parent="jx_social_menu_root"-->
+<!--            action="jx_social_suite.jx_social_dashboard_action"-->
+<!--            sequence="1"/>-->
+
+        <!-- Accounts -->
+        <menuitem
+            id="jx_social_menu_accounts"
+            name="Accounts"
+            parent="jx_social_menu_root"
+            action="jx_social_suite.jx_social_account_action"
+            sequence="5"
+         groups="jx_social_suite.jx_social_group_agency_admin,jx_social_suite.jx_social_group_agency_user"/>
+
+<!--        &lt;!&ndash; Content Calendar &ndash;&gt;-->
+<!--        <menuitem-->
+<!--            id="jx_social_menu_calendar"-->
+<!--            name="Content Calendar"-->
+<!--            parent="jx_social_menu_root"-->
+<!--            action="jx_social_suite.jx_social_calendar_action"-->
+<!--            sequence="10"/>-->
+
+<!--        &lt;!&ndash; Posts &ndash;&gt;-->
+<!--        <menuitem-->
+<!--            id="jx_social_menu_posts"-->
+<!--            name="Posts"-->
+<!--            parent="jx_social_menu_root"-->
+<!--            action="jx_social_suite.jx_social_post_action"-->
+<!--            sequence="15"/>-->
+
+<!--        &lt;!&ndash; Templates &ndash;&gt;-->
+<!--        <menuitem-->
+<!--            id="jx_social_menu_templates"-->
+<!--            name="Templates"-->
+<!--            parent="jx_social_menu_root"-->
+<!--            action="jx_social_suite.jx_social_template_action"-->
+<!--            sequence="20"/>-->
+
+<!--        &lt;!&ndash; Analytics &ndash;&gt;-->
+<!--        <menuitem-->
+<!--            id="jx_social_menu_analytics"-->
+<!--            name="Analytics"-->
+<!--            parent="jx_social_menu_root"-->
+<!--            action="jx_social_suite.jx_social_analytics_action"-->
+<!--            sequence="25"/>-->
+
+<!--        &lt;!&ndash; Reports &ndash;&gt;-->
+<!--        <menuitem-->
+<!--            id="jx_social_menu_reports"-->
+<!--            name="Reports"-->
+<!--            parent="jx_social_menu_root"-->
+<!--            action="jx_social_suite.jx_social_reports_action"-->
+<!--            sequence="30"/>-->
+
+<!--        &lt;!&ndash; Settings &ndash;&gt;-->
+<!--        <menuitem-->
+<!--            id="jx_social_menu_settings"-->
+<!--            name="Settings"-->
+<!--            parent="jx_social_menu_root"-->
+<!--            action="jx_social_suite.jx_social_settings_action"-->
+<!--            sequence="99"-->
+<!--            groups="jx_social_suite.jx_social_group_agency_admin"/>-->
+
+    </data>
+</odoo>

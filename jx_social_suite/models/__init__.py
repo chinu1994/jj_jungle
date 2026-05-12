@@ -9,3 +9,5 @@ from . import jx_social_client_link
 from . import jx_social_template
 from . import jx_social_ad_campaign
 from . import jx_social_audit
+from . import jx_social_webhook_event
+from . import res_partner_inherit

@@ -12,12 +12,12 @@
     'data': [
         'security/jx_social_groups.xml',
         'security/ir.model.access.csv',
-        'data/jx_social_cron.xml',
-        'views/jx_social_menu.xml',
+        # 'data/jx_social_cron.xml',
         'views/jx_social_account_views.xml',
-        'views/jx_social_post_views.xml',
-        'views/jx_social_calendar_views.xml',
-        'views/jx_social_settings_views.xml',
+        'views/jx_social_menu.xml',
+        # 'views/jx_social_post_views.xml',
+        # 'views/jx_social_calendar_views.xml',
+        # 'views/jx_social_settings_views.xml',
     ],
     'assets': {
         'web.assets_backend': [

@@ -14,8 +14,7 @@ class JxSocialAccount(models.Model):
         string='Client',
         required=True,
         ondelete='cascade',
-        domain="[('is_company', '=', True)]",
-        help="The client this social account belongs to"
+        domain="[('is_company', '=', True)]"
     )
 
     provider = fields.Selection(
@@ -97,13 +96,13 @@ class JxSocialAccount(models.Model):
 
     schedule_ids = fields.One2many(
         'jx.social.schedule',
-        'account_id',
+        'social_account_id',
         string='Scheduled Posts'
     )
 
     analytics_ids = fields.One2many(
         'jx.social.analytics',
-        'account_id',
+        'analytic_account_id',
         string='Analytics History'
     )
 
