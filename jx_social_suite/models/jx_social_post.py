@@ -120,15 +120,17 @@ class JxSocialPost(models.Model):
                 continue
 
             states = post.schedule_ids.mapped('state')
-            if all(s == 'published' for s in states):
+
+            # 'sent' = successfully published
+            if all(s == 'sent' for s in states):
                 post.status = 'published'
-            elif any(s == 'failed' for s in states) and any(s == 'published' for s in states):
+            elif any(s == 'failed' for s in states) and any(s == 'sent' for s in states):
                 post.status = 'partial'
-            elif any(s in ('failed', 'error') for s in states):
+            elif any(s in ('failed',) for s in states) and not any(s == 'sent' for s in states):
                 post.status = 'failed'
             elif any(s == 'publishing' for s in states):
                 post.status = 'publishing'
-            elif any(s == 'scheduled' for s in states):
+            elif any(s in ('queued', 'retried') for s in states):
                 post.status = 'scheduled'
             else:
                 post.status = 'draft'
@@ -183,3 +185,19 @@ class JxSocialPost(models.Model):
                 existing.action_queue()
 
         return True
+
+
+    @api.onchange('template_id')
+    def _onchange_template_id(self):
+        if not self.template_id:
+            return
+
+        tpl = self.template_id
+        if tpl.post_type:
+            self.post_type = tpl.post_type
+        if tpl.content_text:
+            self.content_text = tpl.content_text
+        if tpl.hashtags:
+            self.hashtags = tpl.hashtags
+        if tpl.link_url:
+            self.link_url = tpl.link_url

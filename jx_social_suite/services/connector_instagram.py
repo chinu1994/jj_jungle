@@ -85,10 +85,34 @@ class InstagramConnector(JxSocialConnectorBase):
             if not attachment:
                 raise Exception("No media attached")
 
+            # ✅ Caption build karo - content + hashtags + link
+            caption_parts = []
+
+            if post.content_text:
+                caption_parts.append(post.content_text.strip())
+
+            if post.link_url:
+                caption_parts.append(post.link_url.strip())
+
+            if post.hashtags:
+                hashtags = post.hashtags.strip()
+                # Ensure # prefix hai har tag pe
+                tags = []
+                for tag in hashtags.split():
+                    tags.append(tag if tag.startswith('#') else f'#{tag}')
+                caption_parts.append(' '.join(tags))
+
+            final_caption = '\n\n'.join(caption_parts)
+
             jpeg_bytes = self._process_image(attachment)
             image_url = self._upload_to_cloudinary(jpeg_bytes)
 
-            creation_id = self._create_container(account.account_external_id, image_url, post.content_text or "", access_token)
+            creation_id = self._create_container(
+                account.account_external_id,
+                image_url,
+                final_caption,  # ✅ content_text ki jagah final_caption
+                access_token
+            )
             self._wait_for_container(creation_id, access_token)
             post_id = self._publish_container(account.account_external_id, creation_id, access_token)
 
