@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ====================== TREE VIEW ====================== -->
+    <record id="view_jx_social_schedule_tree" model="ir.ui.view">
+        <field name="name">jx.social.schedule.tree</field>
+        <field name="model">jx.social.schedule</field>
+        <field name="arch" type="xml">
+            <tree string="Schedules" default_order="scheduled_at desc">
+                <field name="post_id"/>
+                <field name="partner_id"/>
+                <field name="social_account_id"/>
+                <field name="provider"/>
+                <field name="scheduled_at"/>
+                <field name="state" widget="statusbar"
+                       statusbar_visible="draft,queued,publishing,sent,failed"/>
+                <field name="published_at"/>
+                <field name="retry_count"/>
+                <field name="external_post_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ====================== FORM VIEW ====================== -->
+    <record id="view_jx_social_schedule_form" model="ir.ui.view">
+        <field name="name">jx.social.schedule.form</field>
+        <field name="model">jx.social.schedule</field>
+        <field name="arch" type="xml">
+            <form string="Schedule">
+                <header>
+                    <button name="action_queue"
+                            type="object"
+                            string="Queue"
+                            class="btn-primary"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,queued,publishing,sent,failed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="post_id"/>
+                            <field name="social_account_id"/>
+                            <field name="scheduled_at"/>
+                        </group>
+                        <group>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="provider" readonly="1"/>
+                            <field name="published_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Result">
+                        <field name="external_post_id" readonly="1"/>
+                        <field name="retry_count" readonly="1"/>
+                        <field name="max_retries"/>
+                        <field name="error_message" readonly="1"/>
+                    </group>
+                    <group string="Debug" groups="base.group_system">
+                        <field name="provider_response" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ====================== ACTION ====================== -->
+    <record id="jx_social_schedule_action" model="ir.actions.act_window">
+        <field name="name">Schedules</field>
+        <field name="res_model">jx.social.schedule</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_jx_social_schedule_tree"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_jx_social_post_tree" model="ir.ui.view">
+            <field name="name">jx.social.post.tree</field>
+            <field name="model">jx.social.post</field>
+            <field name="arch" type="xml">
+                <tree string="Social Posts" default_order="create_date desc">
+                    <field name="name"/>
+                    <field name="partner_id"/>
+                    <field name="post_type"/>
+                    <field name="status" widget="statusbar"/>
+                    <field name="created_by"/>
+                    <field name="create_date"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_jx_social_post_form" model="ir.ui.view">
+            <field name="name">jx.social.post.form</field>
+            <field name="model">jx.social.post</field>
+            <field name="arch" type="xml">
+                <form string="Social Post">
+                    <header>
+                        <button name="action_publish_now"
+                                type="object"
+                                string="Publish Now"
+                                class="btn-primary"
+                                attrs="{'invisible': [('status', 'in', ['publishing','published'])]}"/>
+                        <button name="action_schedule"
+                                type="object"
+                                string="Schedule Post"
+                                attrs="{'invisible': [('status', 'in', ['publishing','published'])]}"/>
+                        <field name="status" widget="statusbar"
+                               statusbar_visible="draft,scheduled,publishing,published,failed"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="name" readonly="1"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="partner_id"/>
+                                <field name="post_type"/>
+                                <field name="template_id"/>
+                            </group>
+                            <group>
+                                <field name="created_by" readonly="1"/>
+                            </group>
+                        </group>
+                        <group string="Post Content">
+                            <field name="content_text"
+                                   placeholder="Write your post caption here..."/>
+                            <field name="hashtags"
+                                   placeholder="#hashtag1 #hashtag2"/>
+                            <field name="link_url"
+                                   placeholder="https://..."/>
+                        </group>
+                        <group string="Media">
+                            <field name="media_ids" widget="many2many_binary"/>
+                        </group>
+                        <group string="Target Social Accounts">
+                            <field name="target_account_ids"
+                                   widget="many2many_tags"
+                                   domain="[('partner_id', '=', partner_id), ('status', '=', 'connected')]"/>
+                        </group>
+                        <notebook>
+                            <page string="Schedules">
+                                <field name="schedule_ids">
+                                    <tree>
+                                        <field name="social_account_id"/>
+                                        <field name="scheduled_at"/>
+                                        <field name="state"/>
+                                        <field name="published_at"/>
+                                        <field name="external_post_id"/>
+                                        <field name="error_message"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="jx_social_post_action" model="ir.actions.act_window">
+            <field name="name">Posts</field>
+            <field name="res_model">jx.social.post</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_jx_social_post_tree"/>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ==================== JX Social Suite Cron Jobs ==================== -->
+
+    <!-- 1. Publish Queued Posts -->
+    <record id="jx_social_publish_queued_posts" model="ir.cron">
+        <field name="name">JX Social: Publish Queued Posts</field>
+        <field name="model_id" ref="model_jx_social_job_service"/>
+        <field name="state">code</field>
+        <field name="code">model.publish_queued_posts()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+        <field name="numbercall">-1</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- 2. Retry Failed Posts -->
+    <record id="jx_social_retry_failed_posts" model="ir.cron">
+        <field name="name">JX Social: Retry Failed Posts</field>
+        <field name="model_id" ref="model_jx_social_job_service"/>
+        <field name="state">code</field>
+        <field name="code">model.retry_failed_posts()</field>
+        <field name="interval_number">15</field>
+        <field name="interval_type">minutes</field>
+        <field name="numbercall">-1</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- 3. Token Health Check -->
+    <record id="jx_social_token_health_check" model="ir.cron">
+        <field name="name">JX Social: Token Health Check</field>
+        <field name="model_id" ref="model_jx_social_token_service"/>
+        <field name="state">code</field>
+        <field name="code">model.health_check_all_tokens()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active" eval="True"/>
+        <!-- Runs daily at 2:00 AM -->
+        <field name="nextcall" eval="time.strftime('%Y-%m-%d 02:00:00')"/>
+    </record>
+
+    <!-- 4. Analytics Sync -->
+    <record id="jx_social_analytics_sync" model="ir.cron">
+        <field name="name">JX Social: Analytics Sync</field>
+        <field name="model_id" ref="model_jx_social_analytics_service"/>
+        <field name="state">code</field>
+        <field name="code">model.sync_all_analytics()</field>
+        <field name="interval_number">6</field>
+        <field name="interval_type">hours</field>
+        <field name="numbercall">-1</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- 5. Client Link Cleanup -->
+    <record id="jx_social_client_link_cleanup" model="ir.cron">
+        <field name="name">JX Social: Client Link Cleanup</field>
+        <field name="model_id" ref="model_jx_social_client_link"/>
+        <field name="state">code</field>
+        <field name="code">model._cleanup_expired_links()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active" eval="True"/>
+        <!-- Runs daily at 3:00 AM -->
+        <field name="nextcall" eval="time.strftime('%Y-%m-%d 03:00:00')"/>
+    </record>
+
+        <!-- Webhook Queue Processor -->
+    <record id="jx_social_process_webhook_events" model="ir.cron">
+        <field name="name">JX Social: Process Webhook Events</field>
+        <field name="model_id" ref="model_jx_social_job_service"/>
+        <field name="state">code</field>
+        <field name="code">model.process_webhook_events()</field>
+        <field name="interval_number">2</field>
+        <field name="interval_type">minutes</field>
+        <field name="numbercall">-1</field>
+        <field name="active" eval="True"/>
+    </record>
+
+</odoo>

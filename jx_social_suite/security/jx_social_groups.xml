@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ==================== Base Groups ==================== -->
+    <record id="group_jx_social_manager" model="res.groups">
+        <field name="name">JX Social Suite / Manager</field>
+        <field name="category_id" ref="base.module_category_marketing"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_jx_social_user" model="res.groups">
+        <field name="name">JX Social Suite / User</field>
+        <field name="category_id" ref="base.module_category_marketing"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- ==================== New Groups as per Section 8.1 ==================== -->
+
+    <!-- Agency Admin (Full Access) -->
+    <record id="jx_social_group_agency_admin" model="res.groups">
+        <field name="name">JX Social Suite / Agency Admin</field>
+        <field name="category_id" ref="base.module_category_marketing"/>
+        <field name="implied_ids" eval="[(4, ref('jx_social_suite.group_jx_social_manager'))]"/>
+        <field name="comment">Full access. Configure settings, connect/disconnect accounts, manage all client posts, view all analytics, manage templates globally.</field>
+    </record>
+
+    <!-- Agency User (Standard Team Member) -->
+    <record id="jx_social_group_agency_user" model="res.groups">
+        <field name="name">JX Social Suite / Agency User</field>
+        <field name="category_id" ref="base.module_category_marketing"/>
+        <field name="implied_ids" eval="[(4, ref('jx_social_suite.group_jx_social_user'))]"/>
+        <field name="comment">Create and schedule posts, view analytics for assigned clients, use templates. Cannot configure OAuth settings or disconnect accounts.</field>
+    </record>
+
+    <!-- Client Viewer (For Client Portal) -->
+    <record id="jx_social_group_client_viewer" model="res.groups">
+        <field name="name">JX Social Suite / Client Viewer</field>
+        <field name="category_id" ref="base.module_category_marketing"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="comment">Read-only access to their own client dashboard data via the client portal. Cannot see other clients.</field>
+    </record>
+
+    <!-- System Group (For Cron Jobs & Internal Use) -->
+    <record id="jx_social_group_system" model="res.groups">
+        <field name="name">JX Social Suite / System</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_system'))]"/>
+        <field name="comment">Internal system group for cron jobs and service accounts. Never assigned to human users.</field>
+    </record>
+
+    <!-- ==================== Record Rules (ir.rule) - Existing Kept As Is ==================== -->
+
+    <!-- jx.social.account - Agency Level Scoping -->
+<!--    <record id="jx_social_account_agency_rule" model="ir.rule">-->
+<!--        <field name="name">JX Social Account: Agency Access</field>-->
+<!--        <field name="model_id" ref="model_jx_social_account"/>-->
+<!--        <field name="groups" eval="[-->
+<!--    (4, ref('jx_social_suite.jx_social_group_agency_admin')),-->
+<!--    (4, ref('jx_social_suite.jx_social_group_agency_user'))-->
+<!--]"/>-->
+<!--        <field name="domain_force">[('partner_id.commercial_partner_id', 'in', user.commercial_partner_id.child_ids.ids)]</field>-->
+<!--        <field name="perm_read" eval="True"/>-->
+<!--        <field name="perm_write" eval="True"/>-->
+<!--        <field name="perm_create" eval="True"/>-->
+<!--        <field name="perm_unlink" eval="True"/>-->
+<!--    </record>-->
+
+    <!-- jx.social.post - Agency Level Scoping -->
+<!--    <record id="jx_social_post_agency_rule" model="ir.rule">-->
+<!--        <field name="name">JX Social Post: Agency Access</field>-->
+<!--        <field name="model_id" ref="model_jx_social_post"/>-->
+<!--      <field name="groups" eval="[-->
+<!--    (4, ref('jx_social_suite.jx_social_group_agency_user'))-->
+<!--]"/>-->
+<!--        <field name="domain_force">[('partner_id.commercial_partner_id', 'in', user.commercial_partner_id.child_ids.ids)]</field>-->
+<!--        <field name="perm_read" eval="True"/>-->
+<!--        <field name="perm_write" eval="True"/>-->
+<!--        <field name="perm_create" eval="True"/>-->
+<!--        <field name="perm_unlink" eval="True"/>-->
+<!--    </record>-->
+
+    <!-- jx.social.token - Strict No Direct Access -->
+    <record id="jx_social_token_no_direct_access" model="ir.rule">
+        <field name="name">JX Social Token: No Direct Access</field>
+        <field name="model_id" ref="model_jx_social_token"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[(0,'=',1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- jx.social.audit - Read Only + Agency Scope -->
+    <record id="jx_social_audit_readonly_rule" model="ir.rule">
+        <field name="name">JX Social Audit: Read Only + Agency Scope</field>
+        <field name="model_id" ref="model_jx_social_audit"/>
+        <field name="groups" eval="[
+    (4, ref('jx_social_suite.jx_social_group_agency_admin')),
+    (4, ref('jx_social_suite.jx_social_group_agency_user'))
+]"/>
+        <field name="domain_force">[('partner_id.commercial_partner_id', 'in', user.commercial_partner_id.child_ids.ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+</odoo>

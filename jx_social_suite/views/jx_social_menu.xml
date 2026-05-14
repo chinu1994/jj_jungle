@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ==================== Root Menu ==================== -->
+    <menuitem
+        id="jx_social_menu_root"
+        name="JX Social"
+        sequence="50"
+        web_icon="jx_social_suite,static/src/img/icon.png"
+        groups="jx_social_suite.group_jx_social_user"/>
+
+    <!-- ==================== Posts ==================== -->
+    <menuitem
+        id="jx_social_menu_posts"
+        name="Posts"
+        parent="jx_social_menu_root"
+        sequence="10"/>
+
+    <menuitem
+        id="jx_social_menu_posts_all"
+        name="All Posts"
+        parent="jx_social_menu_posts"
+        action="jx_social_post_action"
+        sequence="10"/>
+
+    <!-- ==================== Accounts ==================== -->
+    <menuitem
+        id="jx_social_menu_accounts"
+        name="Accounts"
+        parent="jx_social_menu_root"
+        sequence="20"/>
+
+    <menuitem
+        id="jx_social_menu_accounts_all"
+        name="Social Accounts"
+        parent="jx_social_menu_accounts"
+        action="jx_social_account_action"
+        sequence="10"/>
+
+    <!-- ==================== Configuration ==================== -->
+    <menuitem
+        id="jx_social_menu_config"
+        name="Configuration"
+        parent="jx_social_menu_root"
+        sequence="90"
+        groups="jx_social_suite.jx_social_group_agency_admin"/>
+
+    <menuitem
+        id="jx_social_menu_config_settings"
+        name="Settings"
+        parent="jx_social_menu_config"
+        action="jx_social_settings_action"
+        sequence="10"
+        groups="jx_social_suite.jx_social_group_agency_admin"/>
+
+<!--    <menuitem-->
+<!--        id="jx_social_menu_config_templates"-->
+<!--        name="Templates"-->
+<!--        parent="jx_social_menu_config"-->
+<!--        action="jx_social_template_action"-->
+<!--        sequence="20"/>-->
+
+</odoo>
