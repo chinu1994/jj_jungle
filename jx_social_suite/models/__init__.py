@@ -11,3 +11,4 @@ from . import jx_social_ad_campaign
 from . import jx_social_audit
 from . import jx_social_webhook_event
 from . import res_partner_inherit
+from . import res_config_settings

@@ -1,112 +1,107 @@
 # -*- coding: utf-8 -*-
-
 from odoo import models, api, fields
 from cryptography.fernet import Fernet
-import base64
 import logging
-from datetime import datetime, timedelta
 
 _logger = logging.getLogger(__name__)
+
 
 class JxSocialTokenService(models.AbstractModel):
     _name = 'jx.social.token.service'
     _description = 'JX Social Token Service'
 
     # ==================== Encryption ====================
-    @api.model
-    def _get_encryption_key(self):
-        key = self.env['ir.config_parameter'].sudo().get_param('jx_social.encryption_key')
-        if not key:
-            key = Fernet.generate_key().decode()
-            self.env['ir.config_parameter'].sudo().set_param('jx_social.encryption_key', key)
-            _logger.warning("New encryption key generated. Set via env var in production!")
-        return key.encode()
 
-    @api.model
     def _get_fernet(self):
-        return Fernet(self._get_encryption_key())
+        secret = self.env['ir.config_parameter'].sudo().get_param('jx_social.token_secret_key')
+        if not secret:
+            raise Exception("Token encryption key not configured. Set 'jx_social.token_secret_key' in System Parameters.")
+        return Fernet(secret.encode())
 
-    @api.model
-    def encrypt_token(self, raw_token):
-        if not raw_token:
+    def encrypt_token(self, raw_value):
+        if not raw_value:
             return False
-        try:
-            fernet = self._get_fernet()
-            encrypted = fernet.encrypt(raw_token.encode())
-            return base64.urlsafe_b64encode(encrypted).decode()
-        except Exception as e:
-            _logger.error("Token encryption failed")
+        return self._get_fernet().encrypt(raw_value.encode()).decode()
+
+    def decrypt_token(self, encrypted_value):
+        if not encrypted_value:
             return False
+        return self._get_fernet().decrypt(encrypted_value.encode()).decode()
+
+    # ==================== OAuth Callback ====================
 
     @api.model
-    def decrypt_token(self, encrypted_token):
-        if not encrypted_token:
-            return False
-        try:
-            fernet = self._get_fernet()
-            decoded = base64.urlsafe_b64decode(encrypted_token.encode())
-            return fernet.decrypt(decoded).decode()
-        except Exception:
-            _logger.error("Token decryption failed")
-            return False
+    def process_oauth_callback(self, provider, code, state):
+        """
+        Called from oauth_callback controller.
+        state = social account ID (as string)
+        """
+        account_id = int(state)
+        account = self.env['jx.social.account'].browse(account_id)
 
-    # ==================== Token Refresh & Health (5.3) ====================
-    @api.model
-    def should_refresh_token(self, token):
-        """Check if token needs refresh based on buffer"""
-        if not token or not token.expires_at:
-            return True
-        buffer_minutes = 10  # Default buffer, connectors can override
-        buffer = timedelta(minutes=buffer_minutes)
-        return fields.Datetime.now() > (token.expires_at - buffer)
+        if not account.exists():
+            raise Exception(f"Social account {account_id} not found")
 
-    @api.model
-    def refresh_token(self, token):
-        """Refresh token using refresh_token (connector specific logic will be called)"""
-        # Will be implemented per connector in Section 6
-        return {'success': False, 'error': 'Connector refresh logic pending'}
+        # Exchange code for token via connector
+        connector = self.env['jx.social.connector.registry'].get_connector(provider)
+        token_data = connector.exchange_code_for_token(code, state)
 
-    @api.model
-    def health_check_all_tokens(self):
-        """Daily cron job - Token Health Check"""
-        accounts = self.env['jx.social.account'].search([('status', '=', 'connected')])
-        for account in accounts:
-            if account.token_id:
-                self._perform_health_check(account)
+        access_token  = token_data.get('access_token')
+        refresh_token = token_data.get('refresh_token')
+        expires_at    = token_data.get('expires_at')
 
-    @api.model
-    def _perform_health_check(self, account):
-        """Lightweight profile call to verify token"""
-        try:
-            connector = self.env['jx.social.connector']._get_connector(account.provider)
-            result = connector.test_connection(account)
-            if not result.get('success'):
-                if result.get('error_type') == 'auth':
-                    account.status = 'error'
-                    # TODO: Send notification to agency_user_id
-        except Exception as e:
-            _logger.error("Health check failed for account %s", account.id)
+        if not access_token:
+            raise Exception("No access token returned from provider")
+
+        # Encrypt before saving
+        encrypted_access  = self.encrypt_token(access_token)
+        encrypted_refresh = self.encrypt_token(refresh_token) if refresh_token else False
+
+        # Create or update token linked to this account
+        existing_token = account.token_id
+        if existing_token:
+            existing_token.write({
+                'access_token_encrypted': encrypted_access,
+                'refresh_token_encrypted': encrypted_refresh,
+                'expires_at': expires_at,
+            })
+            token = existing_token
+        else:
+            token = self.env['jx.social.token'].create({
+                'provider': provider,
+                'access_token_encrypted': encrypted_access,
+                'refresh_token_encrypted': encrypted_refresh,
+                'expires_at': expires_at,
+            })
+
+            account.write({
+                'token_id': token.id,
+                'last_synced': fields.Datetime.now(),
+                'agency_user_id': self.env.user.id,
+            })
+        _logger.info("Token saved successfully for account %s (%s)", account.id, provider)
+        return {'success': True, 'token_id': token.id}
+
+    # ==================== Disconnect ====================
 
     @api.model
     def disconnect_account(self, account):
-        """Proper disconnect as per documentation"""
+        """Revoke token via connector, then delete token record"""
         if not account.token_id:
             return
 
-        # Revoke token at provider if supported (connector responsibility)
         try:
-            connector = self.env['jx.social.connector']._get_connector(account.provider)
+            connector = self.env['jx.social.connector.registry'].get_connector(account.provider)
             connector.revoke_token(account.token_id)
-        except Exception:
-            _logger.warning("Token revocation failed or not supported for %s", account.provider)
+        except Exception as e:
+            _logger.warning("Token revoke failed (non-fatal): %s", e)
 
-        # Delete token record
         account.token_id.unlink()
 
-        # Update account status
-        account.write({
-            'status': 'disconnected',
-            'token_id': False,
-        })
-
-        # Audit log will be written from calling method
+    def health_check_all_tokens(self):
+        _logger.info("JX Social: Token health check starting")
+        tokens = self.env['jx.social.token'].search([])  # no active filter
+        for token in tokens:
+            if not token.access_token_encrypted:
+                _logger.warning("Token %s has no access token", token.id)
+        _logger.info("JX Social: Token health check done. Checked %s tokens", len(tokens))

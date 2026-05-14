@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+      <record id="res_config_settings_view_jx_social" model="ir.ui.view">
+    <field name="name">res.config.settings.view.jx.social</field>
+    <field name="model">res.config.settings</field>
+    <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+    <field name="arch" type="xml">
+
+        <!-- Correct XPath -->
+        <xpath expr="//div[hasclass('settings')]" position="inside">
+
+    <div class="app_settings_block"
+         string="JX Social"
+         data-key="jx_social_suite"
+         groups="jx_social_suite.jx_social_group_agency_admin">
+
+        <h2>JX Social Suite</h2>
+
+        <div class="row mt16 o_settings_container">
+
+            <div class="col-12 col-lg-6 o_setting_box">
+                <div class="o_setting_right_pane">
+                    <label for="jx_social_instagram_app_id"/>
+                    <field name="jx_social_instagram_app_id"/>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-6 o_setting_box">
+                <div class="o_setting_right_pane">
+                    <label for="jx_social_instagram_app_secret"/>
+                    <field name="jx_social_instagram_app_secret" password="True"/>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</xpath>
+    </field>
+</record>
+
+        <!-- ==================== Settings Action ==================== -->
+        <record id="jx_social_settings_action" model="ir.actions.act_window">
+            <field name="name">JX Social Settings</field>
+            <field name="res_model">res.config.settings</field>
+            <field name="view_mode">form</field>
+            <field name="target">inline</field>
+            <field name="context">{'module': 'jx_social_suite'}</field>
+        </record>
+
+        <!-- ==================== Template Views ==================== -->
+        <record id="view_jx_social_template_tree" model="ir.ui.view">
+            <field name="name">jx.social.template.tree</field>
+            <field name="model">jx.social.template</field>
+            <field name="arch" type="xml">
+                <tree string="Templates">
+                    <field name="name"/>
+                    <field name="post_type"/>
+                    <field name="partner_id"/>
+                    <field name="created_by"/>
+                    <field name="active"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_jx_social_template_form" model="ir.ui.view">
+            <field name="name">jx.social.template.form</field>
+            <field name="model">jx.social.template</field>
+            <field name="arch" type="xml">
+                <form string="Post Template">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="name"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="post_type"/>
+                                <field name="partner_id"/>
+                                <field name="active"/>
+                            </group>
+                            <group>
+                                <field name="created_by" readonly="1"/>
+                            </group>
+                        </group>
+                        <group string="Content">
+                            <field name="content_text"
+                                   placeholder="Write template content here..."/>
+                            <field name="hashtags"
+                                   placeholder="#hashtag1 #hashtag2"/>
+                            <field name="link_url"
+                                   placeholder="https://..."/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="jx_social_template_action" model="ir.actions.act_window">
+            <field name="name">Templates</field>
+            <field name="res_model">jx.social.template</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+    </data>
+</odoo>

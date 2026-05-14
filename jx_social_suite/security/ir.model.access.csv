@@ -1,32 +1,25 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-
 jx_social_account_admin_access,jx.social.account - Agency Admin,jx_social_suite.model_jx_social_account,jx_social_suite.jx_social_group_agency_admin,1,1,1,1
 jx_social_account_user_access,jx.social.account - Agency User,jx_social_suite.model_jx_social_account,jx_social_suite.jx_social_group_agency_user,1,1,1,0
-
 jx_social_post_admin_access,jx.social.post - Agency Admin,jx_social_suite.model_jx_social_post,jx_social_suite.jx_social_group_agency_admin,1,1,1,1
 jx_social_post_user_access,jx.social.post - Agency User,jx_social_suite.model_jx_social_post,jx_social_suite.jx_social_group_agency_user,1,1,1,1
-
 jx_social_schedule_admin_access,jx.social.schedule - Agency Admin,jx_social_suite.model_jx_social_schedule,jx_social_suite.jx_social_group_agency_admin,1,1,1,1
-jx_social_schedule_user_access,jx.social.schedule - Agency User,jx_social_suite.model_jx_social_schedule,jx_social_suite.jx_social_group_agency_user,1,1,0,0
-
-
-jx_social_token_no_access,jx.social.token - No Direct Access,jx_social_suite.model_jx_social_token,jx_social_suite.jx_social_group_agency_admin,0,0,0,0
-jx_social_token_no_access_user,jx.social.token - No Direct Access User,jx_social_suite.model_jx_social_token,jx_social_suite.jx_social_group_agency_user,0,0,0,0
-
+jx_social_schedule_user_access,jx.social.schedule - Agency User,jx_social_suite.model_jx_social_schedule,jx_social_suite.jx_social_group_agency_user,1,1,1,0
+jx_social_token_system_access,jx.social.token - System,jx_social_suite.model_jx_social_token,base.group_system,1,1,1,1
 jx_social_audit_admin_read,jx.social.audit - Read Only Admin,jx_social_suite.model_jx_social_audit,jx_social_suite.jx_social_group_agency_admin,1,0,0,0
 jx_social_audit_user_read,jx.social.audit - Read Only User,jx_social_suite.model_jx_social_audit,jx_social_suite.jx_social_group_agency_user,1,0,0,0
-
-
 jx_social_client_link_admin,jx.social.client_link - Agency Admin,jx_social_suite.model_jx_social_client_link,jx_social_suite.jx_social_group_agency_admin,1,1,1,1
 jx_social_client_link_user,jx.social.client_link - Agency User,jx_social_suite.model_jx_social_client_link,jx_social_suite.jx_social_group_agency_user,1,0,1,0
-
 jx_social_template_admin,jx.social.template - Agency Admin,jx_social_suite.model_jx_social_template,jx_social_suite.jx_social_group_agency_admin,1,1,1,1
 jx_social_template_user,jx.social.template - Agency User,jx_social_suite.model_jx_social_template,jx_social_suite.jx_social_group_agency_user,1,1,1,0
-
-jx_social_analytics_admin,jx.social.analytics - Agency Admin,jx_social_suite.model_jx_social_analytics,jx_social_suite.jx_social_group_agency_admin,1,0,0,0
-jx_social_analytics_user,jx_social_analytics - Agency User,jx_social_suite.model_jx_social_analytics,jx_social_suite.jx_social_group_agency_user,1,0,0,0
-
+jx_social_analytics_admin,jx.social.analytics - Agency Admin,jx_social_suite.model_jx_social_analytics,jx_social_suite.jx_social_group_agency_admin,1,1,1,1
+jx_social_analytics_user,jx.social.analytics - Agency User,jx_social_suite.model_jx_social_analytics,jx_social_suite.jx_social_group_agency_user,1,0,0,0
 jx_social_ad_campaign_admin,jx.social.ad.campaign - Agency Admin,jx_social_suite.model_jx_social_ad_campaign,jx_social_suite.jx_social_group_agency_admin,1,1,1,1
 jx_social_ad_campaign_user,jx.social.ad.campaign - Agency User,jx_social_suite.model_jx_social_ad_campaign,jx_social_suite.jx_social_group_agency_user,1,0,0,0
-
 jx_social_webhook_event_system,jx.social.webhook.event - System Only,jx_social_suite.model_jx_social_webhook_event,jx_social_suite.jx_social_group_system,1,1,1,1
+jx_social_webhook_event_admin,jx.social.webhook.event - Admin Read,jx_social_suite.model_jx_social_webhook_event,jx_social_suite.jx_social_group_agency_admin,1,0,0,0
+jx_social_connector_registry_user,jx.social.connector.registry - User,jx_social_suite.model_jx_social_connector_registry,jx_social_suite.jx_social_group_agency_user,1,0,0,0
+jx_social_job_service_system,jx.social.job.service - System,jx_social_suite.model_jx_social_job_service,base.group_system,1,1,1,1
+jx_social_token_service_system,jx.social.token.service - System,jx_social_suite.model_jx_social_token_service,base.group_system,1,1,1,1
+jx_social_analytics_service_system,jx.social.analytics.service - System,jx_social_suite.model_jx_social_analytics_service,base.group_system,1,1,1,1
+jx_social_connector_instagram_system,jx.social.connector.instagram - System,jx_social_suite.model_jx_social_connector_instagram,base.group_system,1,1,1,1

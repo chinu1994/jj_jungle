@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from odoo import models, fields, api
+from odoo import models, fields, api, _
+from odoo.exceptions import UserError
 
 class JxSocialPost(models.Model):
     _name = 'jx.social.post'
@@ -139,3 +140,46 @@ class JxSocialPost(models.Model):
             if vals.get('name', '/') == '/':
                 vals['name'] = self.env['ir.sequence'].next_by_code('jx.social.post') or '/'
         return super().create(vals_list)
+    # jx_social_post.py ke end mein add karo (create method ke baad)
+
+
+    def action_schedule(self):
+        """Open schedule wizard or create schedule records"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Schedule Post',
+            'res_model': 'jx.social.schedule',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_post_id': self.id,
+                'default_partner_id': self.partner_id.id,
+            }
+        }
+
+    def action_publish_now(self):
+        self.ensure_one()
+        if not self.target_account_ids:
+            raise UserError(_("No target accounts selected."))
+        if self.post_type == 'image' and not self.media_ids:
+            raise UserError(_("Image post requires at least one media file."))
+        # ... rest of method
+        for account in self.target_account_ids:
+            # Check if schedule already exists
+            existing = self.env['jx.social.schedule'].search([
+                ('post_id', '=', self.id),
+                ('social_account_id', '=', account.id),
+                ('state', 'not in', ['sent', 'cancelled']),
+            ], limit=1)
+            if not existing:
+                self.env['jx.social.schedule'].create({
+                    'post_id': self.id,
+                    'social_account_id': account.id,
+                    'scheduled_at': fields.Datetime.now(),
+                    'state': 'queued',
+                })
+            else:
+                existing.action_queue()
+
+        return True

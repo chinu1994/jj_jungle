@@ -51,34 +51,33 @@
     <!-- ==================== Record Rules (ir.rule) - Existing Kept As Is ==================== -->
 
     <!-- jx.social.account - Agency Level Scoping -->
-    <record id="jx_social_account_agency_rule" model="ir.rule">
-        <field name="name">JX Social Account: Agency Access</field>
-        <field name="model_id" ref="model_jx_social_account"/>
-        <field name="groups" eval="[
-    (4, ref('jx_social_suite.jx_social_group_agency_admin')),
-    (4, ref('jx_social_suite.jx_social_group_agency_user'))
-]"/>
-        <field name="domain_force">[('partner_id.commercial_partner_id', 'in', user.commercial_partner_id.child_ids.ids)]</field>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="True"/>
-    </record>
+<!--    <record id="jx_social_account_agency_rule" model="ir.rule">-->
+<!--        <field name="name">JX Social Account: Agency Access</field>-->
+<!--        <field name="model_id" ref="model_jx_social_account"/>-->
+<!--        <field name="groups" eval="[-->
+<!--    (4, ref('jx_social_suite.jx_social_group_agency_admin')),-->
+<!--    (4, ref('jx_social_suite.jx_social_group_agency_user'))-->
+<!--]"/>-->
+<!--        <field name="domain_force">[('partner_id.commercial_partner_id', 'in', user.commercial_partner_id.child_ids.ids)]</field>-->
+<!--        <field name="perm_read" eval="True"/>-->
+<!--        <field name="perm_write" eval="True"/>-->
+<!--        <field name="perm_create" eval="True"/>-->
+<!--        <field name="perm_unlink" eval="True"/>-->
+<!--    </record>-->
 
     <!-- jx.social.post - Agency Level Scoping -->
-    <record id="jx_social_post_agency_rule" model="ir.rule">
-        <field name="name">JX Social Post: Agency Access</field>
-        <field name="model_id" ref="model_jx_social_post"/>
-        <field name="groups" eval="[
-    (4, ref('jx_social_suite.jx_social_group_agency_admin')),
-    (4, ref('jx_social_suite.jx_social_group_agency_user'))
-]"/>
-        <field name="domain_force">[('partner_id.commercial_partner_id', 'in', user.commercial_partner_id.child_ids.ids)]</field>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="True"/>
-    </record>
+<!--    <record id="jx_social_post_agency_rule" model="ir.rule">-->
+<!--        <field name="name">JX Social Post: Agency Access</field>-->
+<!--        <field name="model_id" ref="model_jx_social_post"/>-->
+<!--      <field name="groups" eval="[-->
+<!--    (4, ref('jx_social_suite.jx_social_group_agency_user'))-->
+<!--]"/>-->
+<!--        <field name="domain_force">[('partner_id.commercial_partner_id', 'in', user.commercial_partner_id.child_ids.ids)]</field>-->
+<!--        <field name="perm_read" eval="True"/>-->
+<!--        <field name="perm_write" eval="True"/>-->
+<!--        <field name="perm_create" eval="True"/>-->
+<!--        <field name="perm_unlink" eval="True"/>-->
+<!--    </record>-->
 
     <!-- jx.social.token - Strict No Direct Access -->
     <record id="jx_social_token_no_direct_access" model="ir.rule">

@@ -1,88 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- ====================== TREE VIEW ====================== -->
     <record id="view_jx_social_account_tree" model="ir.ui.view">
         <field name="name">jx.social.account.tree</field>
         <field name="model">jx.social.account</field>
         <field name="arch" type="xml">
-            <tree string="Social Accounts">
-                <field name="account_name"/>
+            <tree string="Social Accounts" default_order="partner_id, provider">
                 <field name="partner_id"/>
                 <field name="provider"/>
+                <field name="account_name"/>
                 <field name="account_type"/>
-                <field name="status"/>
+                <field name="status" widget="statusbar"/>
                 <field name="last_synced"/>
+                <field name="agency_user_id" groups="base.group_system"/>
             </tree>
         </field>
     </record>
 
+    <!-- ====================== FORM VIEW ====================== -->
     <record id="view_jx_social_account_form" model="ir.ui.view">
         <field name="name">jx.social.account.form</field>
         <field name="model">jx.social.account</field>
         <field name="arch" type="xml">
             <form string="Social Account">
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_connect_account"
+                                type="object"
+                                string="Connect Account"
+                                icon="fa-plug"
+                                attrs="{'invisible': [('status', '=', 'connected')]}"
+                                class="btn-primary"/>
 
-                    <!-- Header -->
+                        <button name="action_disconnect_account"
+                                type="object"
+                                string="Disconnect"
+                                icon="fa-unlink"
+                                attrs="{'invisible': [('status', '!=', 'connected')]}"
+                                confirm="Are you sure you want to disconnect this account?"/>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1><field name="account_name"/></h1>
+                    </div>
+
                     <group>
                         <group>
-                            <field name="account_name"/>
                             <field name="partner_id"/>
                             <field name="provider"/>
                             <field name="account_type"/>
                         </group>
-
                         <group>
-                            <field name="status" readonly="1"/>
+                            <field name="status" widget="statusbar"/>
                             <field name="last_synced"/>
-                            <field name="agency_user_id"/>
+                            <field name="agency_user_id" groups="base.group_system"/>
                         </group>
                     </group>
 
-                    <!-- Notebook Tabs -->
                     <notebook>
-
-                        <!-- General Info -->
                         <page string="General">
                             <group>
                                 <field name="account_external_id"/>
                                 <field name="scopes"/>
-                                <field name="token_id"/>
+                            </group>
+                            <group string="Token Information" groups="base.group_system">
+                                <field name="token_id" readonly="1"/>
                             </group>
                         </page>
 
-                        <!-- Scheduled Posts -->
-<!--                        <page string="Schedules">-->
-<!--                            <field name="schedule_ids">-->
-<!--                                <tree>-->
-<!--                                    <field name="name"/>-->
-<!--                                </tree>-->
-<!--                            </field>-->
-<!--                        </page>-->
+                        <page string="Scheduled Posts">
+                            <field name="schedule_ids"/>
+                        </page>
 
-<!--                        &lt;!&ndash; Analytics &ndash;&gt;-->
-<!--                        <page string="Analytics">-->
-<!--                            <field name="analytics_ids">-->
-<!--                                <tree>-->
-<!--                                    <field name="date"/>-->
-<!--                                    <field name="impressions"/>-->
-<!--                                    <field name="clicks"/>-->
-<!--                                    <field name="likes"/>-->
-<!--                                </tree>-->
-<!--                            </field>-->
-<!--                        </page>-->
-
+                        <page string="Analytics">
+                            <field name="analytics_ids"/>
+                        </page>
                     </notebook>
-
                 </sheet>
             </form>
         </field>
     </record>
 
+    <!-- ====================== ACTION ====================== -->
     <record id="jx_social_account_action" model="ir.actions.act_window">
-    <field name="name">Social Accounts</field>
-    <field name="res_model">jx.social.account</field>
-    <field name="view_mode">tree,form</field>
-</record>
+        <field name="name">Social Accounts</field>
+        <field name="res_model">jx.social.account</field>
+        <field name="view_mode">tree,form</field>
+    </record>
 
 </odoo>
-
