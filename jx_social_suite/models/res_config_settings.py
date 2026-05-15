@@ -28,3 +28,12 @@ class ResConfigSettings(models.TransientModel):
         string='Cloudinary API Secret',
         config_parameter='jx_social.cloudinary_api_secret'
     )
+    jx_social_facebook_app_id = fields.Char(
+        string='Facebook App ID',
+        config_parameter='jx_social.facebook_app_id'
+    )
+
+    jx_social_facebook_app_secret = fields.Char(
+        string='Facebook App Secret',
+        config_parameter='jx_social.facebook_app_secret'
+    )

@@ -17,6 +17,8 @@
          groups="jx_social_suite.jx_social_group_agency_admin">
 
         <h2>JX Social Suite</h2>
+        <h3 class="mt32">Instagram Configuration</h3>
+
 
         <div class="row mt16 o_settings_container">
 
@@ -35,6 +37,27 @@
             </div>
 
         </div>
+        <h3 class="mt32">Facebook Configuration</h3>
+
+                <div class="row mt16 o_settings_container">
+
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_right_pane">
+                            <label for="jx_social_facebook_app_id"/>
+                            <field name="jx_social_facebook_app_id"/>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_right_pane">
+                            <label for="jx_social_facebook_app_secret"/>
+                            <field name="jx_social_facebook_app_secret"
+                                   password="True"/>
+                        </div>
+                    </div>
+
+                </div>
+
 
     </div>
 

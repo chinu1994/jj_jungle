@@ -23,3 +23,4 @@ jx_social_job_service_system,jx.social.job.service - System,jx_social_suite.mode
 jx_social_token_service_system,jx.social.token.service - System,jx_social_suite.model_jx_social_token_service,base.group_system,1,1,1,1
 jx_social_analytics_service_system,jx.social.analytics.service - System,jx_social_suite.model_jx_social_analytics_service,base.group_system,1,1,1,1
 jx_social_connector_instagram_system,jx.social.connector.instagram - System,jx_social_suite.model_jx_social_connector_instagram,base.group_system,1,1,1,1
+jx_social_connector_facebook_system,jx.social.connector.facebook - System,jx_social_suite.model_jx_social_connector_facebook,base.group_system,1,1,1,1
