@@ -21,6 +21,7 @@
 
         # Data
         'data/jx_social_cron.xml',
+        'data/ir_sequence_data.xml',
 
         # Views
         'views/jx_social_account_views.xml',

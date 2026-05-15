@@ -53,11 +53,11 @@
         sequence="10"
         groups="jx_social_suite.jx_social_group_agency_admin"/>
 
-<!--    <menuitem-->
-<!--        id="jx_social_menu_config_templates"-->
-<!--        name="Templates"-->
-<!--        parent="jx_social_menu_config"-->
-<!--        action="jx_social_template_action"-->
-<!--        sequence="20"/>-->
+    <menuitem
+        id="jx_social_menu_config_templates"
+        name="Templates"
+        parent="jx_social_menu_config"
+        action="jx_social_template_action"
+        sequence="20"/>
 
 </odoo>

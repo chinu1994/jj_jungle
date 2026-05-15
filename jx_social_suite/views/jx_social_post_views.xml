@@ -43,7 +43,9 @@
                             <group>
                                 <field name="partner_id"/>
                                 <field name="post_type"/>
-                                <field name="template_id"/>
+                                <field name="template_id"
+                                        domain="['|', ('partner_id', '=', False), ('partner_id', '=', partner_id)]"
+                                        options="{'no_create': True}"/>
                             </group>
                             <group>
                                 <field name="created_by" readonly="1"/>
