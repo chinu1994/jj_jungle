@@ -18,7 +18,7 @@ class FacebookConnector(JxSocialConnectorBase):
     _name = 'jx.social.connector.facebook'
 
     provider_name = 'facebook'
-    supported_post_types = ['text', 'image', 'link']
+    supported_post_types = ['image', 'video', 'carousel','text','link']
     supports_organic = True
     supports_analytics = True
     max_media_size_mb = 25

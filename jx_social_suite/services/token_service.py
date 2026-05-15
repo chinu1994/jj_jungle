@@ -113,6 +113,13 @@ class JxSocialTokenService(models.AbstractModel):
     @api.model
     def _process_facebook_callback(self, code, state):
 
+        account_id = int(state)
+
+        account = self.env['jx.social.account'].browse(account_id)
+
+        if not account.exists():
+            raise Exception("Social account not found")
+
         connector = self.env['jx.social.connector.registry'].get_connector('facebook')
 
         token_data = connector.exchange_code_for_token(code, state)
@@ -122,11 +129,56 @@ class JxSocialTokenService(models.AbstractModel):
         if not access_token:
             raise Exception("No access token returned")
 
-        partner_id = int(state)
-
-        partner = self.env['res.partner'].browse(partner_id)
-
-        if not partner.exists():
-            raise Exception("Partner not found")
+        # ==========================================
+        # GET FACEBOOK PAGES
+        # ==========================================
 
         pages = connector.get_connected_accounts(access_token)
+
+        if not pages:
+            raise Exception("No Facebook pages found")
+
+        # First page
+        page = pages[0]
+
+        page_id = page.get('id')
+        page_name = page.get('name')
+        page_token = page.get('access_token')
+
+        encrypted_access = self.encrypt_token(page_token)
+
+        # ==========================================
+        # CREATE / UPDATE TOKEN
+        # ==========================================
+
+        existing_token = account.token_id
+
+        if existing_token:
+
+            existing_token.write({
+                'access_token_encrypted': encrypted_access,
+            })
+
+            token = existing_token
+
+        else:
+
+            token = self.env['jx.social.token'].create({
+                'provider': 'facebook',
+                'access_token_encrypted': encrypted_access,
+            })
+
+        # ==========================================
+        # UPDATE EXISTING ACCOUNT
+        # ==========================================
+
+        account.write({
+            'token_id': token.id,
+            'last_synced': fields.Datetime.now(),
+            'agency_user_id': self.env.user.id,
+        })
+
+        return {
+            'success': True,
+            'token_id': token.id,
+        }
