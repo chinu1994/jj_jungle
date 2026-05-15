@@ -36,6 +36,10 @@ class JxSocialTokenService(models.AbstractModel):
         Called from oauth_callback controller.
         state = social account ID (as string)
         """
+
+        if provider == 'facebook':
+            return self._process_facebook_callback(code, state)
+
         account_id = int(state)
         account = self.env['jx.social.account'].browse(account_id)
 
@@ -105,3 +109,76 @@ class JxSocialTokenService(models.AbstractModel):
             if not token.access_token_encrypted:
                 _logger.warning("Token %s has no access token", token.id)
         _logger.info("JX Social: Token health check done. Checked %s tokens", len(tokens))
+
+    @api.model
+    def _process_facebook_callback(self, code, state):
+
+        account_id = int(state)
+
+        account = self.env['jx.social.account'].browse(account_id)
+
+        if not account.exists():
+            raise Exception("Social account not found")
+
+        connector = self.env['jx.social.connector.registry'].get_connector('facebook')
+
+        token_data = connector.exchange_code_for_token(code, state)
+
+        access_token = token_data.get('access_token')
+
+        if not access_token:
+            raise Exception("No access token returned")
+
+        # ==========================================
+        # GET FACEBOOK PAGES
+        # ==========================================
+
+        pages = connector.get_connected_accounts(access_token)
+
+        if not pages:
+            raise Exception("No Facebook pages found")
+
+        # First page
+        page = pages[0]
+
+        page_id = page.get('id')
+        page_name = page.get('name')
+        page_token = page.get('access_token')
+
+        encrypted_access = self.encrypt_token(page_token)
+
+        # ==========================================
+        # CREATE / UPDATE TOKEN
+        # ==========================================
+
+        existing_token = account.token_id
+
+        if existing_token:
+
+            existing_token.write({
+                'access_token_encrypted': encrypted_access,
+            })
+
+            token = existing_token
+
+        else:
+
+            token = self.env['jx.social.token'].create({
+                'provider': 'facebook',
+                'access_token_encrypted': encrypted_access,
+            })
+
+        # ==========================================
+        # UPDATE EXISTING ACCOUNT
+        # ==========================================
+
+        account.write({
+            'token_id': token.id,
+            'last_synced': fields.Datetime.now(),
+            'agency_user_id': self.env.user.id,
+        })
+
+        return {
+            'success': True,
+            'token_id': token.id,
+        }

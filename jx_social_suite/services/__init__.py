@@ -6,3 +6,4 @@ from . import job_service
 from . import analytics_service
 from . import registry
 from . import connector_instagram
+from . import facebook_connector
