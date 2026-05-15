@@ -74,47 +74,91 @@ class InstagramConnector(JxSocialConnectorBase):
         post = schedule_record.post_id
         account = schedule_record.social_account_id
         token = account.token_id
-
         if not token:
             raise Exception("No token found")
-
         access_token = token.get_decrypted_access_token()
 
         try:
-            attachment = post.media_ids[0] if post.media_ids else None
-            if not attachment:
-                raise Exception("No media attached")
+            attachments = post.media_ids
 
-            # ✅ Caption build karo - content + hashtags + link
+            # ==================== CAPTION BUILD ====================
             caption_parts = []
-
             if post.content_text:
                 caption_parts.append(post.content_text.strip())
-
             if post.link_url:
                 caption_parts.append(post.link_url.strip())
-
             if post.hashtags:
-                hashtags = post.hashtags.strip()
-                # Ensure # prefix hai har tag pe
                 tags = []
-                for tag in hashtags.split():
+                for tag in post.hashtags.strip().split():
                     tags.append(tag if tag.startswith('#') else f'#{tag}')
                 caption_parts.append(' '.join(tags))
-
             final_caption = '\n\n'.join(caption_parts)
 
-            jpeg_bytes = self._process_image(attachment)
-            image_url = self._upload_to_cloudinary(jpeg_bytes)
+            # ==================== CAROUSEL POST ====================
+            if post.post_type == 'carousel':
+                if len(attachments) < 2:
+                    raise Exception("Carousel requires at least 2 media items")
+                child_ids = []
+                for attachment in attachments:
+                    mimetype = attachment.mimetype or ''
+                    if mimetype.startswith('video/'):
+                        media_url = self._upload_video_to_cloudinary(attachment)
+                        child_id = self._create_carousel_child_video(
+                            ig_id=account.account_external_id,
+                            video_url=media_url,
+                            access_token=access_token
+                        )
+                    else:
+                        jpeg_bytes = self._process_image(attachment)
+                        media_url = self._upload_to_cloudinary(jpeg_bytes)
+                        child_id = self._create_carousel_child_image(
+                            ig_id=account.account_external_id,
+                            image_url=media_url,
+                            access_token=access_token
+                        )
+                    self._wait_for_container(child_id, access_token)
+                    child_ids.append(child_id)
+                carousel_id = self._create_carousel_container(
+                    ig_id=account.account_external_id,
+                    child_ids=child_ids,
+                    caption=final_caption,
+                    access_token=access_token
+                )
+                self._wait_for_container(carousel_id, access_token)
+                post_id = self._publish_container(
+                    account.account_external_id, carousel_id, access_token
+                )
 
-            creation_id = self._create_container(
-                account.account_external_id,
-                image_url,
-                final_caption,  # ✅ content_text ki jagah final_caption
-                access_token
-            )
-            self._wait_for_container(creation_id, access_token)
-            post_id = self._publish_container(account.account_external_id, creation_id, access_token)
+            # ==================== VIDEO POST ====================
+            elif attachments and (attachments[0].mimetype or '').startswith('video/'):
+                video_url = self._upload_video_to_cloudinary(attachments[0])
+                creation_id = self._create_video_container(
+                    ig_id=account.account_external_id,
+                    video_url=video_url,
+                    caption=final_caption,
+                    access_token=access_token
+                )
+                self._wait_for_container(creation_id, access_token)
+                post_id = self._publish_container(
+                    account.account_external_id, creation_id, access_token
+                )
+
+            # ==================== IMAGE POST ====================
+            else:
+                if not attachments:
+                    raise Exception("No media attached")
+                jpeg_bytes = self._process_image(attachments[0])
+                image_url = self._upload_to_cloudinary(jpeg_bytes)
+                creation_id = self._create_container(
+                    ig_id=account.account_external_id,
+                    image_url=image_url,
+                    caption=final_caption,
+                    access_token=access_token
+                )
+                self._wait_for_container(creation_id, access_token)
+                post_id = self._publish_container(
+                    account.account_external_id, creation_id, access_token
+                )
 
             return {
                 'external_post_id': post_id,
@@ -185,6 +229,101 @@ class InstagramConnector(JxSocialConnectorBase):
         if 'secure_url' not in resp:
             raise Exception("Cloudinary upload failed")
         return resp['secure_url']
+
+    def _upload_video_to_cloudinary(self, attachment):
+        params = self.env['ir.config_parameter'].sudo()
+        cloud_name = params.get_param('jx_social.cloudinary_cloud_name')
+        api_key = params.get_param('jx_social.cloudinary_api_key')
+        api_secret = params.get_param('jx_social.cloudinary_api_secret')
+
+        if not all([cloud_name, api_key, api_secret]):
+            raise Exception("Cloudinary not configured")
+
+        video_bytes = base64.b64decode(attachment.datas)
+
+        timestamp = str(int(time.time()))
+        signature = hashlib.sha1(
+            f"timestamp={timestamp}{api_secret}".encode()
+        ).hexdigest()
+
+        resp = requests.post(
+            f"https://api.cloudinary.com/v1_1/{cloud_name}/video/upload",
+            data={
+                'api_key': api_key,
+                'timestamp': timestamp,
+                'signature': signature
+            },
+            files={'file': (attachment.name, video_bytes, attachment.mimetype)},
+            timeout=120  # video bada hoga, timeout zyada rakho
+        ).json()
+
+        _logger.info("Cloudinary video upload response: %s", resp)
+
+        if 'secure_url' not in resp:
+            raise Exception(f"Cloudinary video upload failed: {resp}")
+
+        return resp['secure_url']
+
+    def _create_video_container(self, ig_id, video_url, caption, access_token):
+        url = f"https://graph.facebook.com/v17.0/{ig_id}/media"
+        resp = requests.post(url, params={
+            'video_url': video_url,
+            'caption': caption,
+            'media_type': 'REELS',  # Instagram video = REELS
+            'access_token': access_token
+        }, timeout=30).json()
+
+        _logger.info("Instagram video container response: %s", resp)
+
+        if 'id' not in resp:
+            raise Exception(f"Video container failed: {resp}")
+
+        return resp['id']
+
+    def _create_carousel_child_image(self, ig_id, image_url, access_token):
+        url = f"https://graph.facebook.com/v17.0/{ig_id}/media"
+        resp = requests.post(url, params={
+            'image_url': image_url,
+            'media_type': 'IMAGE',
+            'is_carousel_item': 'true',
+            'access_token': access_token
+        }, timeout=30).json()
+
+        _logger.info("Carousel child image response: %s", resp)
+
+        if 'id' not in resp:
+            raise Exception(f"Carousel child image failed: {resp}")
+        return resp['id']
+
+    def _create_carousel_child_video(self, ig_id, video_url, access_token):
+        url = f"https://graph.facebook.com/v17.0/{ig_id}/media"
+        resp = requests.post(url, params={
+            'video_url': video_url,
+            'media_type': 'VIDEO',
+            'is_carousel_item': 'true',
+            'access_token': access_token
+        }, timeout=30).json()
+
+        _logger.info("Carousel child video response: %s", resp)
+
+        if 'id' not in resp:
+            raise Exception(f"Carousel child video failed: {resp}")
+        return resp['id']
+
+    def _create_carousel_container(self, ig_id, child_ids, caption, access_token):
+        url = f"https://graph.facebook.com/v17.0/{ig_id}/media"
+        resp = requests.post(url, params={
+            'media_type': 'CAROUSEL',
+            'children': ','.join(child_ids),
+            'caption': caption,
+            'access_token': access_token
+        }, timeout=30).json()
+
+        _logger.info("Carousel container response: %s", resp)
+
+        if 'id' not in resp:
+            raise Exception(f"Carousel container failed: {resp}")
+        return resp['id']
 
     def _create_container(self, ig_id, image_url, caption, access_token):
         url = f"https://graph.facebook.com/v17.0/{ig_id}/media"

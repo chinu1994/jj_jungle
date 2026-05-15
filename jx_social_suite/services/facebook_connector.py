@@ -18,7 +18,7 @@ class FacebookConnector(JxSocialConnectorBase):
     _name = 'jx.social.connector.facebook'
 
     provider_name = 'facebook'
-    supported_post_types = ['image', 'video', 'carousel','text','link']
+    supported_post_types = ['image', 'video', 'carousel', 'text', 'link']
     supports_organic = True
     supports_analytics = True
     max_media_size_mb = 25
@@ -117,32 +117,75 @@ class FacebookConnector(JxSocialConnectorBase):
         access_token = token.get_decrypted_access_token()
 
         try:
+            attachments = post.media_ids
 
-            # ==================== IMAGE POST ====================
+            # ==================== CAPTION BUILD ====================
+            caption_parts = []
+            if post.content_text:
+                caption_parts.append(post.content_text.strip())
+            if post.link_url:
+                caption_parts.append(post.link_url.strip())
+            if post.hashtags:
+                tags = []
+                for tag in post.hashtags.strip().split():
+                    tags.append(tag if tag.startswith('#') else f'#{tag}')
+                caption_parts.append(' '.join(tags))
+            final_caption = '\n\n'.join(caption_parts)
 
-            if post.post_type == 'image':
+            # ==================== CAROUSEL POST ====================
+            if post.post_type == 'carousel':
+                if len(attachments) < 2:
+                    raise Exception("Carousel requires at least 2 media items")
 
-                attachment = post.media_ids[0] if post.media_ids else None
+                media_ids = []
+                for attachment in attachments:
+                    mimetype = attachment.mimetype or ''
+                    if mimetype.startswith('video/'):
+                        media_id = self._upload_video_unpublished(
+                            page_id=account.account_external_id,
+                            attachment=attachment,
+                            access_token=access_token
+                        )
+                    else:
+                        image_bytes = self._process_image(attachment)
+                        media_id = self._upload_photo_unpublished(
+                            page_id=account.account_external_id,
+                            image_bytes=image_bytes,
+                            access_token=access_token
+                        )
+                    media_ids.append(media_id)
 
-                if not attachment:
-                    raise Exception("No image attached")
-
-                image_bytes = self._process_image(attachment)
-
-                post_id = self._publish_photo(
+                post_id = self._publish_carousel(
                     page_id=account.account_external_id,
-                    image_bytes=image_bytes,
-                    caption=post.content_text or '',
+                    media_ids=media_ids,
+                    caption=final_caption,
                     access_token=access_token
                 )
 
-            # ==================== TEXT POST ====================
+            # ==================== VIDEO POST ====================
+            elif attachments and (attachments[0].mimetype or '').startswith('video/'):
+                post_id = self._publish_video(
+                    page_id=account.account_external_id,
+                    attachment=attachments[0],
+                    caption=final_caption,
+                    access_token=access_token
+                )
 
+            # ==================== IMAGE POST ====================
+            elif attachments:
+                image_bytes = self._process_image(attachments[0])
+                post_id = self._publish_photo(
+                    page_id=account.account_external_id,
+                    image_bytes=image_bytes,
+                    caption=final_caption,
+                    access_token=access_token
+                )
+
+            # ==================== TEXT / LINK POST ====================
             else:
-
                 post_id = self._publish_text_post(
                     page_id=account.account_external_id,
-                    message=post.content_text or '',
+                    message=final_caption,
                     access_token=access_token
                 )
 
@@ -173,7 +216,7 @@ class FacebookConnector(JxSocialConnectorBase):
             timeout=30
         ).json()
 
-        _logger.error("Facebook text post response: %s", resp)
+        _logger.info("Facebook text post response: %s", resp)
 
         if 'id' not in resp:
             raise Exception(f"Facebook text post failed: {resp}")
@@ -200,12 +243,182 @@ class FacebookConnector(JxSocialConnectorBase):
             timeout=60
         ).json()
 
-        _logger.error("Facebook image post response: %s", resp)
+        _logger.info("Facebook image post response: %s", resp)
 
         if 'post_id' not in resp and 'id' not in resp:
             raise Exception(f"Facebook image post failed: {resp}")
 
         return resp.get('post_id') or resp.get('id')
+
+    # =========================================================
+    # Video Post (Published)
+    # =========================================================
+
+    def _publish_video(self, page_id, attachment, caption, access_token):
+        url = f"https://graph.facebook.com/v17.0/{page_id}/videos"
+
+        video_bytes = base64.b64decode(attachment.datas)
+
+        resp = requests.post(
+            url,
+            data={
+                'description': caption,
+                'access_token': access_token
+            },
+            files={
+                'source': (attachment.name, video_bytes, attachment.mimetype)
+            },
+            timeout=120
+        ).json()
+
+        _logger.info("Facebook video post response: %s", resp)
+
+        if 'id' not in resp:
+            raise Exception(f"Facebook video post failed: {resp}")
+
+        return resp['id']
+
+    # =========================================================
+    # Carousel - Upload Image Unpublished
+    # =========================================================
+
+    def _upload_photo_unpublished(self, page_id, image_bytes, access_token):
+        url = f"https://graph.facebook.com/v17.0/{page_id}/photos"
+
+        resp = requests.post(
+            url,
+            data={
+                'published': 'false',
+                'access_token': access_token
+            },
+            files={
+                'source': ('post.jpg', image_bytes, 'image/jpeg')
+            },
+            timeout=60
+        ).json()
+
+        _logger.info("Facebook unpublished photo response: %s", resp)
+
+        if 'id' not in resp:
+            raise Exception(f"Facebook unpublished photo upload failed: {resp}")
+
+        return resp['id']
+
+    # =========================================================
+    # Carousel - Upload Video Unpublished (Cloudinary via URL)
+    # =========================================================
+
+    def _upload_video_unpublished(self, page_id, attachment, access_token):
+        # Pehle Cloudinary pe upload karo public URL ke liye
+        video_url = self._upload_video_to_cloudinary(attachment)
+
+        url = f"https://graph.facebook.com/v17.0/{page_id}/videos"
+
+        resp = requests.post(
+            url,
+            data={
+                'file_url': video_url,
+                'published': 'false',
+                'access_token': access_token
+            },
+            timeout=120
+        ).json()
+
+        _logger.info("Facebook unpublished video response: %s", resp)
+
+        if 'id' not in resp:
+            raise Exception(f"Facebook unpublished video upload failed: {resp}")
+
+        return resp['id']
+
+    # =========================================================
+    # Carousel - Final Publish
+    # =========================================================
+
+    def _publish_carousel(self, page_id, media_ids, caption, access_token):
+        url = f"https://graph.facebook.com/v17.0/{page_id}/feed"
+
+        data = {
+            'message': caption,
+            'access_token': access_token
+        }
+
+        for i, media_id in enumerate(media_ids):
+            data[f'attached_media[{i}]'] = f'{{"media_fbid":"{media_id}"}}'
+
+        resp = requests.post(url, data=data, timeout=60).json()
+
+        _logger.info("Facebook carousel post response: %s", resp)
+
+        if 'id' not in resp:
+            raise Exception(f"Facebook carousel post failed: {resp}")
+
+        return resp['id']
+
+    # =========================================================
+    # Cloudinary - Image Upload
+    # =========================================================
+
+    def _upload_image_to_cloudinary(self, jpeg_bytes):
+        params = self.env['ir.config_parameter'].sudo()
+        cloud_name = params.get_param('jx_social.cloudinary_cloud_name')
+        api_key = params.get_param('jx_social.cloudinary_api_key')
+        api_secret = params.get_param('jx_social.cloudinary_api_secret')
+
+        if not all([cloud_name, api_key, api_secret]):
+            raise Exception("Cloudinary not configured")
+
+        timestamp = str(int(time.time()))
+        signature = hashlib.sha1(
+            f"timestamp={timestamp}{api_secret}".encode()
+        ).hexdigest()
+
+        resp = requests.post(
+            f"https://api.cloudinary.com/v1_1/{cloud_name}/image/upload",
+            data={'api_key': api_key, 'timestamp': timestamp, 'signature': signature},
+            files={'file': ('post.jpg', jpeg_bytes, 'image/jpeg')},
+            timeout=30
+        ).json()
+
+        _logger.info("Cloudinary image upload response: %s", resp)
+
+        if 'secure_url' not in resp:
+            raise Exception(f"Cloudinary image upload failed: {resp}")
+
+        return resp['secure_url']
+
+    # =========================================================
+    # Cloudinary - Video Upload
+    # =========================================================
+
+    def _upload_video_to_cloudinary(self, attachment):
+        params = self.env['ir.config_parameter'].sudo()
+        cloud_name = params.get_param('jx_social.cloudinary_cloud_name')
+        api_key = params.get_param('jx_social.cloudinary_api_key')
+        api_secret = params.get_param('jx_social.cloudinary_api_secret')
+
+        if not all([cloud_name, api_key, api_secret]):
+            raise Exception("Cloudinary not configured")
+
+        video_bytes = base64.b64decode(attachment.datas)
+        timestamp = str(int(time.time()))
+        signature = hashlib.sha1(
+            f"timestamp={timestamp}{api_secret}".encode()
+        ).hexdigest()
+
+        resp = requests.post(
+            f"https://api.cloudinary.com/v1_1/{cloud_name}/video/upload",
+            data={'api_key': api_key, 'timestamp': timestamp, 'signature': signature},
+            files={'file': (attachment.name, video_bytes, attachment.mimetype)},
+            timeout=120
+        ).json()
+
+        _logger.info("Cloudinary video upload response: %s", resp)
+
+        if 'secure_url' not in resp:
+            raise Exception(f"Cloudinary video upload failed: {resp}")
+
+        return resp['secure_url']
 
     # =========================================================
     # Process Image
@@ -270,7 +483,7 @@ class FacebookConnector(JxSocialConnectorBase):
         return resp['data']
 
     # =========================================================
-    # Revoke Token
+    # Stubs
     # =========================================================
 
     def revoke_token(self, token_record):
